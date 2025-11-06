@@ -1,0 +1,624 @@
+﻿Projeto de Aplicação
+
+
+
+
+
+
+Sistema de Biblioteca
+
+
+
+
+Componentes do Grupo:
+Ana Carolina de Assis | 2320860
+Gabriel Martins Mendes | 2311271
+Judy Faria | 2312668
+Lorenzo Aguiar | 1912465
+Luiza Mattos Cersosimo | 2320591
+Thiago Bello | 2211881
+
+
+
+
+
+
+
+
+
+
+Projeto de Programação Modular
+Turma  3WB
+Objetivo da Aplicação
+
+
+O objetivo deste projeto é desenvolver um sistema de gestão de biblioteca robusto e modular, projetado para automatizar as operações essenciais e garantir a integridade dos dados. A aplicação irá gerenciar de forma integrada quatro áreas principais:
+* Gestão de Usuários: Controlando o acesso de clientes e funcionários por meio de autenticação.
+* Gestão de Acervo: Administrando o catálogo de livros e o inventário de cópias físicas.
+* Gestão de Empréstimos: Orquestrando todo o ciclo de vida dos empréstimos, desde o registro até a devolução e renovação.
+* Gestão de Multas: Automatizando a identificação de atrasos e o cálculo de multas correspondentes.
+O sistema oferecerá uma interface pública para consulta ao acervo e portais seguros para clientes e funcionários, cada um com funcionalidades específicas ao seu perfil. A arquitetura modular é um pilar fundamental do projeto, visando a clara separação de responsabilidades para facilitar o desenvolvimento, os testes e a manutenção futura.
+Especificação de Requisitos 
+________________
+
+
+1. Visão Geral e Perfis de Acesso
+O sistema deve gerenciar as operações de uma biblioteca, incluindo o controle do acervo, clientes e empréstimos. O acesso às funcionalidades do sistema deve ser controlado por autenticação, com a distinção de dois papéis com permissões diferentes:
+* Usuário da Biblioteca: Pode consultar o acervo e gerenciar suas próprias informações e empréstimos após se autenticar.
+* Funcionário: Possui permissões administrativas para gerenciar todo o sistema (acervo, usuários, empréstimos) após se autenticar.
+2. Requisitos Funcionais (RF)
+→ Acesso e Segurança
+* RF-001: O sistema deve exigir autenticação (usuário e senha) para acesso a qualquer funcionalidade restrita.
+* RF-002: O sistema deve diferenciar as permissões com base no papel do usuário autenticado (Usuário da Biblioteca ou Funcionário).
+* RF-003: Se, o sistema for inicializado com uma conta de administrador padrão (ex: "admin"). Este administrador terá a permissão para cadastrar novas contas de Funcionário, definindo para cada uma suas credenciais de acesso.
+→ Acesso Público (Não autenticado)
+* RF-004: O sistema deve permitir que qualquer pessoa (sem login) pesquise no acervo de livros.
+* RF-005: A funcionalidade de pesquisa deve permitir buscas por título e autor.
+* RF-006: O resultado da pesquisa deve informar a disponibilidade do livro e sua localização física.
+
+
+→ Gestão de Clientes (Área do Funcionário)
+* RF-007: O sistema deve permitir o cadastro de novos Usuários da Biblioteca com informações como Nome, CPF, Endereço e Telefone.
+* RF-008: O cadastro de um Usuário da Biblioteca deve incluir a criação de uma senha para seu acesso ao portal.
+* RF-009: O sistema deve proibir a exclusão de um usuário que possua empréstimos pendentes.
+→ Gestão de Acervo (Área do Funcionário)
+* RF-010: O sistema deve permitir o cadastro de títulos de livros com informações essenciais como Título e Autor.
+* RF-011: O sistema deve permitir a adição de múltiplas cópias (exemplares) associadas a um título de livro, cada uma com um identificador único e um status de disponibilidade.
+* RF-012: O sistema deve proibir a exclusão de um título de livro caso qualquer uma de suas cópias esteja emprestada.
+→ Gestão de Empréstimos
+* RF-013: O sistema deve permitir que um Funcionário registre um empréstimo, associando um usuário a uma cópia específica de um livro.
+* RF-014: O sistema deve calcular a data de devolução de um novo empréstimo como 7 dias úteis após a data de início, desconsiderando fins de semana e feriados.
+* RF-015: O sistema deve proibir um novo empréstimo a um usuário caso qualquer uma das seguintes condições seja verdadeira:
+   * a. O usuário já atingiu o limite de 10 empréstimos ativos.
+   * b. O usuário possui um ou mais empréstimos com o status "Atrasado".
+* RF-016: O sistema deve permitir o registro de devolução de um livro, atualizando seu status de disponibilidade.
+* RF-017: O sistema deve permitir a renovação de um empréstimo, estendendo a data de devolução em mais 7 dias úteis.
+→ Portal do Usuário (Área Logada)
+* RF-018: Um usuário autenticado, ao logar, deve ser direcionado a uma tela inicial do portal, que conterá um menu de navegação.
+* RF-019: O usuário deve poder navegar para uma área onde possa consultar seu histórico completo de empréstimos, incluindo os que estão em andamento, atrasados e os já finalizados.
+* RF-020: O sistema deve exibir as datas de início e devolução para cada empréstimo ativo.
+* RF-021: O usuário deve poder solicitar a renovação de um empréstimo que não esteja atrasado.
+
+
+→ Gestão de Multas
+* RF-022: O sistema deve identificar automaticamente um empréstimo como "Atrasado" se a data atual for posterior à data de devolução prevista.
+* RF-023: O sistema deve calcular o valor da multa para empréstimos atrasados.
+* RF-024: A regra de cálculo da multa deve ser de juros compostos, com acréscimo diário.
+* RF-025: Um usuário autenticado deve poder visualizar o valor atual da multa para seus empréstimos atrasados.
+* RF-026: O sistema deve condicionar a renovação de um empréstimo atrasado (realizado por um funcionário) ao registro do pagamento da multa.
+3. Requisitos Não Funcionais (RNF)
+* RNF-001 (Usabilidade): A interface para operações críticas do funcionário (como registrar um empréstimo ou uma devolução) deve ser projetada para que a tarefa possa ser concluída a partir de uma única tela principal, sem a necessidade de navegar por múltiplos menus ou páginas distintas para finalizar a ação.
+* RNF-002 (Desempenho): O tempo de resposta para transações e consultas não deve exceder 2 segundos em condições normais de uso.
+* RNF-003 (Confiabilidade): O sistema deve garantir a integridade dos dados, impedindo que uma mesma cópia de livro seja emprestada a mais de uma pessoa simultaneamente.
+* RNF-004 (Modularidade): A arquitetura do sistema deve ser modular, com clara separação de responsabilidades entre os componentes.
+Especificação da Interface Funcional do Sistema de Biblioteca
+Descreve as principais entidades de dados e as operações (funções) que o sistema deve prover para atender aos requisitos definidos.
+________________
+
+
+
+
+Módulo 1: Autenticação e Gestão de Usuários
+Este módulo lida com quem pode acessar o sistema e o que eles podem fazer.
+→ Modelos de Dados:
+* Funcionário:
+   * ID_Funcionario (Inteiro, Chave Primária)
+   * NomeUsuario (Texto, Único)
+   * SenhaHash (Texto)
+   * Papel (Texto, ex: "Administrador")
+* Cliente (Usuário da Biblioteca):
+   * ID_Cliente (Inteiro, Chave Primária)
+   * Nome (Texto)
+   * CPF (Texto, Único)
+   * Endereco (Texto)
+   * Telefone (Texto)
+   * SenhaHash (Texto)
+→ Operações (Interface de Serviço):
+* Autenticar(usuario: Texto, senha: Texto)
+   * O que faz: Verifica as credenciais e retorna o tipo de usuário (Funcionário ou Cliente) e um token de sessão.
+→ Atende aos Requisitos: RF-001, RF-002.
+
+
+* CadastrarFuncionario(dadosNovoFuncionario: Objeto)
+   * O que faz: (Acessível apenas por um admin) Cria uma nova conta de funcionário no sistema.
+   * Parâmetro dadosNovoFuncionario contém:
+      * NomeUsuario (Texto)
+      * Senha (Texto)
+      * Papel (Texto)
+→ Atende ao Requisito: RF-003.
+
+
+* CadastrarCliente(dadosNovoCliente: Objeto)
+   * O que faz: (Acessível por Funcionário) Cria uma nova conta de cliente no sistema.
+   * Parâmetro dadosNovoCliente contém:
+      * Nome (Texto)
+      * CPF (Texto)
+      * Endereco (Texto)
+      * Telefone (Texto)
+      * Senha (Texto)
+→ Atende aos Requisitos: RF-007, RF-008.
+* ExcluirCliente(ID_Cliente: Inteiro)
+   * O que faz: (Acessível por Funcionário) Remove um cliente do sistema.
+   * Regra: A operação deve falhar se o cliente tiver empréstimos pendentes.
+→ Atende ao Requisito: RF-009.
+Módulo 2: Acervo (Livros e Cópias)
+Este módulo gerencia o catálogo de livros e o estoque físico.
+→ Modelos de Dados:
+* Livro (Título):
+   * ID_Livro (Inteiro, Chave Primária)
+   * Titulo (Texto)
+   * Autor (Texto)
+* Copia (Exemplar Físico):
+   * ID_Copia (Inteiro, Chave Primária)
+   * ID_Livro_Referencia (Chave Estrangeira para Livro)
+   * LocalizacaoFisica (Texto)
+   * Status (Texto: "Disponível", "Emprestado")
+
+
+→ Operações (Interface de Serviço):
+* BuscarLivrosPublico(termoDeBusca: Texto)
+   * O que faz: (Acesso Público) Retorna uma lista de livros e sua disponibilidade com base no título ou autor.
+→ Atende aos Requisitos: RF-004, RF-005, RF-006.
+
+
+* CadastrarNovoLivro(dadosLivro: Objeto)
+   * O que faz: (Acessível por Funcionário) Cadastra um novo título de livro no sistema.
+
+
+   * Parâmetro dadosLivro contém:
+      * Titulo (Texto)
+      * Autor (Texto)
+→ Atende ao Requisito: RF-010.
+* AdicionarCopias(ID_Livro: Inteiro, quantidade: Inteiro, localizacao: Texto)
+   * O que faz: (Acessível por Funcionário) Cria um número especificado de cópias para um livro já existente.
+→ Atende ao Requisito: RF-011.
+* ExcluirLivro(ID_Livro: Inteiro)
+   * O que faz: (Acessível por Funcionário) Remove um título e todas as suas cópias.
+   * Regra: A operação deve falhar se qualquer cópia do livro estiver emprestada.
+→ Atende ao Requisito: RF-012.
+
+
+Módulo 3: Empréstimos e Renovações
+Gerenciando a circulação dos livros.
+→ Modelo de Dados:
+* Empréstimo:
+   * ID_Emprestimo (Inteiro, Chave Primária)
+   * ID_Copia_Referencia (Chave Estrangeira para Copia)
+   * ID_Cliente_Referencia (Chave Estrangeira para Cliente)
+   * DataInicio (Data)
+   * DataDevolucaoPrevista (Data)
+   * DataDevolucaoReal (Data, nulo até a devolução)
+   * Status (Texto: “Em andamento", "Atrasado", "Finalizado")
+
+
+
+
+→ Operações (Interface de Serviço):
+* CriarEmprestimo(ID_Cliente: Inteiro, ID_Copia: Inteiro)
+   * O que faz: (Acessível por Funcionário) Registra um novo empréstimo.
+   * Regras:
+      * Verifica se o cliente atingiu o limite de 10 empréstimos (RF-015a).
+      * Verifica se o cliente possui empréstimos atrasados (RF-015b).
+      * Calcula a DataDevolucaoPrevista (RF-014).
+→ Atende aos Requisitos: RF-013, RF-014, RF-015.
+
+
+* RegistrarDevolucao(ID_Copia: Inteiro)
+   * O que faz: (Acessível por Funcionário) Finaliza um empréstimo.
+   * Regra: Altera o status da cópia para "Disponível" e do empréstimo para "Finalizado".
+→ Atende ao Requisito: RF-016.
+* RenovarEmprestimo(ID_Emprestimo: Inteiro)
+   * O que faz: (Acessível por Funcionário ou Cliente) Estende o prazo de um empréstimo.
+   * Regras:
+      * Se for o cliente, a operação deve falhar se o empréstimo estiver atrasado (RF-021).
+      * Se for o funcionário e estiver atrasado, a operação requer o pagamento da multa (RF-026).
+→ Atende aos Requisitos: RF-017, RF-021, RF-026.
+* ConsultarHistoricoCliente(ID_Cliente: Inteiro)
+   * O que faz: (Acessível pelo próprio Cliente) Retorna a lista de todos os empréstimos (atuais e passados) do cliente.
+→ Atende aos Requisitos: RF-018, RF-019, RF-020.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Módulo 4: Multas
+Este módulo não precisa de um modelo de dados próprio, pois é uma consequência do estado de um Empréstimo.
+→ Operações (Interface de Serviço):
+* VerificarStatusEmprestimos(ID_Cliente: Inteiro)
+   * O que faz: (Função interna do sistema) Varre os empréstimos ativos de um cliente e atualiza o status para "Atrasado" se necessário.
+→ Atende ao Requisito: RF-022.
+* CalcularMulta(ID_Emprestimo: Inteiro)
+   * O que faz: Retorna o valor atual da multa para um empréstimo atrasado, com base no número de dias de atraso e juros compostos.
+→ Atende aos Requisitos: RF-023, RF-024, RF-025.
+Diagrama de arquitetura de módulos 
+
+
+→ Link para o Miro
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Definição do Desenvolvedor Responsável por Cada Módulo
+________________
+
+
+
+
+
+
+
+
+
+
+
+
+Módulo
+	Responsável Back-end
+	Responsável Front-end
+	Responsável Testador
+	Gestão de Usuário
+	Ana Carolina
+	Ana Carolina
+	Thiago
+	Gestão de Acervo
+	Judy
+	Thiago
+	Judy
+	Gestão de Empréstimos
+	Gabriel
+	Luiza
+	Gabriel
+	Gestão de Multas
+	Lorenzo
+	Lorenzo
+	Luiza
+	
+
+
+
+
+
+Casos de Teste Previstos da Aplicação
+testes de caixa preta
+________________
+
+
+Módulo 1: Autenticação e Gestão de Usuários
+Este módulo foca em garantir o acesso seguro e a correta administração das contas de usuário.
+* Teste 1: Autenticação de Funcionário Válida
+   * Objetivo: Verificar se um funcionário com credenciais corretas pode acessar as funcionalidades restritas do sistema.
+   * Interface Alvo: Autenticar(usuario: Texto, senha: Texto).
+   * Resultado Esperado: Ao fornecer credenciais válidas, a função deve retornar o tipo de usuário "Funcionário" e um token de sessão, diferenciando suas permissões de acesso.
+   * Requisitos Atendidos: RF-001 , RF-002.
+
+
+* Teste 2: Autenticação de Cliente Válida
+   * Objetivo: Verificar se um cliente (Usuário da Biblioteca) pode se autenticar para acessar seu portal.
+   * Interface Alvo: Autenticar(usuario: Texto, senha: Texto).
+   * Resultado Esperado: A função deve retornar o tipo "Cliente" e um token de sessão ao receber um usuário e senha corretos.
+   * Requisitos Atendidos: RF-001 , RF-002.
+
+
+* Teste 3: Cadastro de Novo Funcionário por Administrador
+   * Objetivo: Validar que um usuário administrador pode criar novas contas para outros funcionários.
+   * Interface Alvo: CadastrarFuncionario(dadosNovoFuncionario: Objeto).
+   * Resultado Esperado: Um administrador logado deve conseguir criar uma nova conta de funcionário ao fornecer NomeUsuario, Senha e Papel.
+   * Requisito Atendido: RF-003.
+
+
+* Teste 4: Cadastro de Novo Cliente por Funcionário
+   * Objetivo: Assegurar que um funcionário possa registrar novos Usuários da Biblioteca no sistema.
+   * Interface Alvo: CadastrarCliente(dadosNovoCliente: Objeto).
+   * Resultado Esperado: Um funcionário logado deve conseguir criar uma conta de cliente ao fornecer os dados necessários, incluindo uma senha para o acesso do usuário.
+   * Requisitos Atendidos: RF-007 , RF-008.
+
+
+* Teste 5: Impedir Exclusão de Cliente com Empréstimos Pendentes
+   * Objetivo: Garantir a aplicação da regra que proíbe a exclusão de clientes com pendências.
+   * Interface Alvo: ExcluirCliente(ID_Cliente: Inteiro).
+   * Resultado Esperado: A chamada da função deve falhar ao tentar remover um cliente que possua empréstimos ativos.
+   * Requisito Atendido: RF-009.
+________________
+
+
+Módulo 2: Acervo (Livros e Cópias)
+Estes testes validam o gerenciamento do catálogo de livros e seus exemplares físicos.
+* Teste 6: Busca Pública no Acervo
+   * Objetivo: Validar que qualquer pessoa, sem necessidade de login, pode pesquisar o acervo por título e autor.
+   * Interface Alvo: BuscarLivrosPublico(termoDeBusca: Texto).
+   * Resultado Esperado: A função deve retornar uma lista de livros correspondentes ao termo pesquisado, informando a disponibilidade e a localização de cada um.
+   * Requisitos Atendidos: RF-004 , RF-005 , RF-006.
+
+
+
+
+* Teste 7: Adição de Múltiplas Cópias (Exemplares) a um Livro
+   * Objetivo: Verificar se um funcionário pode adicionar vários exemplares a um título de livro já existente.
+   * Interface Alvo: AdicionarCopias(ID_Livro: Inteiro, quantidade: Inteiro, localizacao: Texto).
+   * Resultado Esperado: O sistema deve criar o número especificado de cópias, cada uma com um identificador único e status de disponibilidade.
+   * Requisito Atendido: RF-011.
+
+
+* Teste 8: Impedir Exclusão de Livro com Cópias Emprestadas
+   * Objetivo: Garantir que um título não seja removido do acervo se alguma de suas cópias estiver emprestada.
+   * Interface Alvo: ExcluirLivro(ID_Livro: Inteiro).
+   * Resultado Esperado: A operação deve falhar para proteger a integridade dos registros de empréstimos.
+   * Requisito Atendido: RF-012.
+________________
+
+
+Módulo 3: Empréstimos e Renovações
+Esta seção aborda as operações centrais de circulação de livros da biblioteca.
+* Teste 9: Criação de Empréstimo e Cálculo de Data de Devolução
+   * Objetivo: Testar o registro de um novo empréstimo e a correta aplicação da regra de cálculo da data de devolução.
+   * Interface Alvo: CriarEmprestimo(ID_Cliente: Inteiro, ID_Copia: Inteiro).
+   * Resultado Esperado: O empréstimo é registrado com sucesso e a DataDevolucaoPrevista é calculada como 7 dias úteis após a data de início.
+   * Requisitos Atendidos: RF-013 , RF-014.
+
+
+
+
+
+
+* Teste 10: Bloquear Empréstimo (Limite Atingido e Atraso Pendente)
+   * Objetivo: Verificar se o sistema impede um novo empréstimo caso o cliente já tenha 10 livros ou possua algum item em atraso.
+   * Interface Alvo: CriarEmprestimo(ID_Cliente: Inteiro, ID_Copia: Inteiro).
+   * Resultado Esperado: A operação deve falhar em ambos os cenários, retornando uma mensagem de erro apropriada.
+   * Requisito Atendido: RF-015.
+
+
+* Teste 11: Renovação de Empréstimo pelo Cliente (Sem Atraso)
+   * Objetivo: Assegurar que um cliente autenticado possa renovar um empréstimo que não esteja atrasado.
+   * Interface Alvo: RenovarEmprestimo(ID_Emprestimo: Inteiro).
+   * Resultado Esperado: A data de devolução do empréstimo é estendida em mais 7 dias úteis. A operação deve falhar se o empréstimo estiver atrasado.
+   * Requisitos Atendidos: RF-017 , RF-021.
+
+
+* Teste 12: Consulta de Histórico de Empréstimos pelo Cliente
+   * Objetivo: Garantir que, após o login, o cliente possa ver seu histórico completo de empréstimos.
+   * Interface Alvo: ConsultarHistoricoCliente(ID_Cliente: Inteiro).
+   * Resultado Esperado: O sistema deve exibir uma lista com todos os empréstimos (em andamento, atrasados e finalizados), incluindo datas de início e devolução.
+   * Requisitos Atendidos: RF-018 , RF-019 , RF-020.
+
+
+________________
+
+
+Módulo 4: Multas
+Estes testes validam o correto gerenciamento de multas por atraso.
+* Teste 13: Identificação Automática de Empréstimo Atrasado
+   * Objetivo: Validar que o sistema altera o status de um empréstimo para "Atrasado" quando a data atual ultrapassa a data de devolução.
+   * Interface Alvo: VerificarStatusEmprestimos(ID_Cliente: Inteiro) (função interna do sistema).
+   * Resultado Esperado: O status do empréstimo é atualizado automaticamente para "Atrasado".
+   * Requisito Atendido: RF-022.
+
+
+* Teste 14: Cálculo e Visualização de Multa
+   * Objetivo: Verificar se o cálculo da multa por juros compostos diários é feito corretamente e se o valor é visível para o cliente.
+   * Interface Alvo: CalcularMulta(ID_Emprestimo: Inteiro).
+   * Resultado Esperado: A função deve retornar o valor correto da multa , que deve estar disponível para consulta pelo cliente em seu portal.
+   * Requisitos Atendidos: RF-023 , RF-024 , RF-025.
+
+
+* Teste 15: Condicionar Renovação de Empréstimo Atrasado ao Pagamento da Multa
+   * Objetivo: Garantir que um funcionário só possa renovar um livro atrasado mediante o registro do pagamento da multa.
+   * Interface Alvo: RenovarEmprestimo(ID_Emprestimo: Inteiro).
+   * Resultado Esperado: Ao ser chamada por um funcionário para um empréstimo atrasado, a conclusão da operação deve estar condicionada ao pagamento da multa.
+   * Requisito Atendido: RF-026.
+Casos de Teste Integrados da Aplicação
+________________
+
+
+
+
+Cenário 1: 
+→ Fluxo Completo de um Empréstimo Bem-Sucedido
+Este teste valida a principal funcionalidade do sistema, garantindo que os módulos de Usuário, Acervo e Empréstimos colaboram corretamente desde a criação até a finalização de um empréstimo.
+* Teste Integrado 1: Criação e Devolução de um Empréstimo
+   * Objetivo: Verificar o ciclo de vida completo de um empréstimo, desde o registro (validando cliente e cópia) até a devolução (atualizando os status).
+   * Módulos Envolvidos: Gestão de Empréstimos, Gestão de Usuário e Gestão de Acervo.
+   * Pré-condições (Setup):
+      * Um funcionário está autenticado no sistema.
+      * Existe um cliente cadastrado, "Ana Silva", sem empréstimos ativos ou pendências.
+      * Existe um livro cadastrado, "A Fúria dos Reis", com uma cópia específica (ID_Copia: 101) cujo status é "Disponível".
+   * Passos (Execução):
+1. O funcionário chama a função CriarEmprestimo, passando o ID da cliente "Ana Silva" e o ID_Copia 101.
+2. Após alguns dias, o funcionário chama a função RegistrarDevolucao para a Cópia de ID 101.
+   * Resultado Esperado:
+      * No Passo 1: A operação é bem-sucedida. O módulo Gestão de Empréstimos valida com o módulo Gestão de Usuário que a cliente não tem restrições. Um novo empréstimo é criado com a data de devolução calculada para 7 dias úteis no futuro. O módulo Gestão de Empréstimos atualiza o status da Cópia 101 para "Emprestado" no módulo Gestão de Acervo.
+      * No Passo 2: A operação de devolução é bem-sucedida. O status do empréstimo é alterado para "Finalizado" no módulo Gestão de Empréstimos. O status da Cópia 101 é alterado de volta para "Disponível" no módulo Gestão de Acervo.
+________________
+
+
+Cenário 2: 
+→ Validação de Regras de Negócio que Impedem Ações
+Estes testes garantem que as regras de segurança e integridade que dependem de múltiplos módulos estão funcionando.
+* Teste Integrado 2: Impedir Empréstimo para Cliente com Pendências
+   * Objetivo: Garantir que o módulo de Empréstimos consulte corretamente o de Usuário para bloquear um novo empréstimo, conforme RF-015.
+   * Módulos Envolvidos: Gestão de Empréstimos e Gestão de Usuário.
+   * Pré-condições (Setup):
+      * Um funcionário está autenticado.
+      * Existe um cliente, "Bruno Costa", que já possui 10 empréstimos ativos.
+      * Existe uma cópia de livro qualquer com status "Disponível".
+   * Passos (Execução):
+1. O funcionário chama a função CriarEmprestimo tentando registrar um novo empréstimo para "Bruno Costa".
+
+
+   * Resultado Esperado:
+      * A operação deve falhar.
+      * O módulo Gestão de Empréstimos deve receber uma resposta negativa ao validar as condições do cliente.
+      * O sistema deve retornar uma mensagem de erro informando que o cliente atingiu o limite de empréstimos. Nenhum novo empréstimo deve ser criado.
+
+
+* Teste Integrado 3: Impedir Exclusão de Cliente com Empréstimo Ativo
+   * Objetivo: Garantir que o módulo de Usuário consulte o de Empréstimos antes de permitir uma exclusão, conforme RF-009.
+   * Módulos Envolvidos: Gestão de Usuário e Gestão de Empréstimos.
+   * Pré-condições (Setup):
+      * Um funcionário está autenticado.
+      * Existe uma cliente, "Carla Dias", que possui pelo menos um empréstimo com status "Em andamento".
+   * Passos (Execução):
+1. O funcionário chama a função ExcluirCliente passando o ID de "Carla Dias".
+
+
+   * Resultado Esperado:
+      * A operação deve falhar.
+      * O módulo Gestão de Usuário deve verificar com o módulo Gestão de Empréstimos e identificar a pendência.
+      * O sistema deve retornar um erro, conforme a regra de negócio. O registro da cliente deve permanecer intacto.
+
+
+* Teste Integrado 4: Impedir Exclusão de Livro com Cópia Emprestada
+   * Objetivo: Garantir que o módulo de Acervo consulte o de Empréstimos antes de permitir a exclusão de um livro, conforme RF-012.
+   * Módulos Envolvidos: Gestão de Acervo, Gestão de Empréstimos.
+   * Pré-condições (Setup):
+      * Um funcionário está autenticado.
+      * Existe um livro, "Duna", que possui uma de suas cópias com status "Emprestado".
+   * Passos (Execução):
+1. O funcionário chama a função ExcluirLivro passando o ID do livro "Duna".
+
+
+   * Resultado Esperado:
+      * A operação deve falhar.
+      * O módulo Gestão de Acervo deve verificar com o módulo Gestão de Empréstimos e identificar que uma cópia está em circulação.
+      * O sistema deve retornar um erro, conforme a regra de negócio. O registro do livro e de todas as suas cópias deve permanecer intacto.
+
+
+________________
+
+
+Cenário 3: 
+→ Interação do Cliente com o Sistema
+Este teste foca na experiência do cliente, validando que os dados de diferentes módulos são apresentados a ele de forma correta e segura.
+
+
+* Teste Integrado 5: Consulta de Histórico e Renovação pelo Cliente
+   * Objetivo: Validar se o cliente, após se autenticar, consegue ver seu histórico (vindo do módulo de Empréstimos) e interagir com ele, renovando um empréstimo dentro do prazo.
+   * Módulos Envolvidos: Gestão de Usuários e Gestão de Empréstimos.
+   * Pré-condições (Setup):
+      * Existe uma cliente, "Fernanda Lima", com um empréstimo ativo (ID_Emprestimo: 50) que não está atrasado.
+      * "Fernanda Lima" também possui um empréstimo já finalizado em seu histórico.
+   * Passos (Execução):
+1. A cliente se autentica no sistema usando a função Autenticar.
+2. No portal, ela chama a função ConsultarHistoricoCliente.
+3. Ela então chama a função RenovarEmprestimo para o empréstimo de ID 50.
+
+
+   * Resultado Esperado:
+      * No Passo 1 e 2: A autenticação é bem-sucedida, retornando o tipo "Cliente". A consulta de histórico retorna a lista com seus dois empréstimos (um "Em andamento" e um "Finalizado"), exibindo corretamente as datas.
+      * No Passo 3: A operação de renovação é bem-sucedida. O módulo de Empréstimos estende a DataDevolucaoPrevista em mais 7 dias úteis , pois a condição de não estar atrasado foi satisfeita.
+
+
+________________
+
+
+Cenário 4: 
+→ Gestão de Atrasos e Multas
+Este teste valida a complexa interação entre os módulos de Empréstimos e Multas, uma regra de negócio crítica para a biblioteca.
+
+
+* Teste Integrado 6: Renovação de Empréstimo Atrasado por Funcionário
+   * Objetivo: Garantir que um funcionário só consiga renovar um empréstimo atrasado após o sistema registrar o pagamento da multa, validando a comunicação entre Empréstimos e Multas.
+   * Módulos Envolvidos: Gestão de Empréstimos e Gestão de Multas.
+   * Pré-condições (Setup):
+      * Um funcionário está autenticado.
+      * Existe um empréstimo cujo status foi atualizado para "Atrasado" pela função interna VerificarStatusEmprestimos.
+      * O módulo de Multas já é capaz de calcular um valor de multa para este empréstimo através da função CalcularMulta.
+   * Passos (Execução):
+1. O funcionário chama a função RenovarEmprestimo para o empréstimo atrasado.
+2. O sistema exige a confirmação do pagamento da multa (conforme a regra em RF-026).
+3. O funcionário confirma o pagamento.
+
+
+   * Resultado Esperado:
+      * A operação é concluída com sucesso.
+      * O módulo Gestão de Empréstimos solicita o cálculo da multa ao módulo Gestão de Multas.
+      * A renovação só é efetivada após a condição de pagamento ser satisfeita.
+      * A DataDevolucaoPrevista do empréstimo é estendida, e seu status é atualizado de "Atrasado" para "Em andamento".
