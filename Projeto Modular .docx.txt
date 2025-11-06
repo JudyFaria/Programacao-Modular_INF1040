@@ -1,36 +1,44 @@
 ﻿Projeto de Aplicação
 
-
-
-
-
-
 Sistema de Biblioteca
 
-
-
-
 Componentes do Grupo:
-Ana Carolina de Assis | 2320860
-Gabriel Martins Mendes | 2311271
 Judy Faria | 2312668
-Lorenzo Aguiar | 1912465
-Luiza Mattos Cersosimo | 2320591
-Thiago Bello | 2211881
-
-
-
-
-
-
-
-
 
 
 Projeto de Programação Modular
 Turma  3WB
 Objetivo da Aplicação
 
+
+Definição do Desenvolvedor Responsável por Cada Módulo
+________________
+
+Módulo
+	Responsável Back-end
+	Responsável Front-end
+	Responsável Testador
+
+	Gestão de Usuário
+	   Judy
+	   Ana Carolina
+	   Thiago
+	
+   Gestão de Acervo
+	   Judy
+   	Thiago
+	   Judy
+	
+   Gestão de Empréstimos
+	   Gabriel
+	   Luiza
+	   Gabriel
+	
+   Gestão de Multas
+	   Lorenzo
+	   Lorenzo
+	   Luiza
+	
 
 O objetivo deste projeto é desenvolver um sistema de gestão de biblioteca robusto e modular, projetado para automatizar as operações essenciais e garantir a integridade dos dados. A aplicação irá gerenciar de forma integrada quatro áreas principais:
 * Gestão de Usuários: Controlando o acesso de clientes e funcionários por meio de autenticação.
@@ -219,17 +227,6 @@ Gerenciando a circulação dos livros.
 
 
 
-
-
-
-
-
-
-
-
-
-
-
 Módulo 4: Multas
 Este módulo não precisa de um modelo de dados próprio, pois é uma consequência do estado de um Empréstimo.
 → Operações (Interface de Serviço):
@@ -238,133 +235,7 @@ Este módulo não precisa de um modelo de dados próprio, pois é uma consequên
 → Atende ao Requisito: RF-022.
 * CalcularMulta(ID_Emprestimo: Inteiro)
    * O que faz: Retorna o valor atual da multa para um empréstimo atrasado, com base no número de dias de atraso e juros compostos.
-→ Atende aos Requisitos: RF-023, RF-024, RF-025.
-Diagrama de arquitetura de módulos 
-
-
-→ Link para o Miro
-  
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Definição do Desenvolvedor Responsável por Cada Módulo
-________________
-
-
-
-
-
-
-
-
-
-
-
-
-Módulo
-	Responsável Back-end
-	Responsável Front-end
-	Responsável Testador
-	Gestão de Usuário
-	Ana Carolina
-	Ana Carolina
-	Thiago
-	Gestão de Acervo
-	Judy
-	Thiago
-	Judy
-	Gestão de Empréstimos
-	Gabriel
-	Luiza
-	Gabriel
-	Gestão de Multas
-	Lorenzo
-	Lorenzo
-	Luiza
-	
-
-
-
+→ Atende aos Requisitos: RF-023, RF-024, RF-025
 
 
 Casos de Teste Previstos da Aplicação
