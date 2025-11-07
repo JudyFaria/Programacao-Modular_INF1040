@@ -20,24 +20,24 @@ Módulo
 	Responsável Testador
 
 	Gestão de Usuário
-	   Judy
-	   Ana Carolina
-	   Thiago
+	   Judy (06/11)
+	   Judy (07/11 - login)
+	   Judy (07/11)
 	
    Gestão de Acervo
-	   Judy
-   	Thiago
-	   Judy
+	   Judy (06/11)
+   	Judy -
+	   Judy (07/11)
 	
    Gestão de Empréstimos
-	   Gabriel
-	   Luiza
-	   Gabriel
+	   Judy ()
+	   Judy
+      Judy
 	
    Gestão de Multas
-	   Lorenzo
-	   Lorenzo
-	   Luiza
+	   Judy
+	   Judy
+	   Judy
 	
 
 O objetivo deste projeto é desenvolver um sistema de gestão de biblioteca robusto e modular, projetado para automatizar as operações essenciais e garantir a integridade dos dados. A aplicação irá gerenciar de forma integrada quatro áreas principais:
