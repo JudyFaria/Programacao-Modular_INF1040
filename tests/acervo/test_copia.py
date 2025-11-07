@@ -50,7 +50,7 @@ def test_status_add_copia():
 
     assert copia_1["Status"] == "Disponível"
 
-
+# dentro da listra de copias, se id ref igual, então id cópias diferentes
 def test_add_multiplas_copias_um_livro():
     '''
         Testa a adição de múltiplas cópias associadas a um título
@@ -84,6 +84,5 @@ def test_add_multiplas_copias_um_livro():
 
 
 
-# dentro da listra de copias, se id ref igual, então id cópias diferentes
 
 

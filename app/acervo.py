@@ -89,20 +89,39 @@ def add_copias(id_livro_ref, localiazacao):
 
 
 
-def buscar_cópia(termo_busca):
+def buscar_livro(termo_busca):
 
     '''
-        Busca e retorna uma lista de livros (cópia) e sua disponibilidade
+        Busca o livro por Título, Autor ou Edição (editora)
+        Retorna uma lista das cópias do livro pesquisado e suas respectivas disponibilidades
     '''
+    global _lst_livros
+    resultado_busca = []
 
-    result_busca = []
-    
-    for livro in _lst_copias_livros:
+    # encontrar os ids dos livros
+    for livro in _lst_livros:
 
-        if ( (termo_busca.lower() in livro["Titulo"].lower() ) or ( termo_busca.lower() in livro["Autor"].lower() ) ):
-            result_busca.append(livro)
+        if ( (termo_busca.lower() in livro["Titulo"].lower() ) 
+            or ( termo_busca.lower() in livro["Autor"].lower() )
+            or ( termo_busca.lower() in livro["Edicao"].lower()) 
+            ):
+            
+            id_livro_achado = livro["ID_Livro"]
+            copias_deste_livro = []
 
-    return result_busca
+            for copia in _lst_copias_livros:
+                if copia["ID_Livro_Referencia"] == id_livro_achado:
+                    copias_deste_livro.append(copia)
+
+            #montando dicionário do resutado
+            resultado_este_livro = {
+                "Livro": livro,
+                "Copias": copias_deste_livro,
+            }
+
+            resultado_busca.append(resultado_este_livro)
+
+    return resultado_busca
 
 
 def excluir_livro_e_copias(id_livro):
