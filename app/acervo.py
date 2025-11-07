@@ -65,7 +65,7 @@ def add_copias(id_livro_ref, localiazacao):
 
     for livro in _lst_livros:
 
-        if (livro["ID_livro"] == id_livro_ref):
+        if (livro["ID_Livro"] == id_livro_ref):
             livro_existe = True
             break
 
@@ -111,15 +111,16 @@ def excluir_livro_e_copias(id_livro):
         Remove um título e todas as suas cópias
         Se, e somente se, não houver cópias em empréstimo
     '''
-
+    global _lst_copias_livros, _lst_livros
     copia_emprestada = None
     
     # Verificação se há cópias em empréstimo
     for copia in _lst_copias_livros:
         
         if ( copia["ID_Livro_Referencia"] == id_livro ):
-            copia_emprestada = copia
-            break
+            if copia["Status"] == "Emprestada":
+                copia_emprestada = copia
+                break
 
     if copia_emprestada:
         print(f"ERRO: Exclusão falhou.")
@@ -140,6 +141,8 @@ def excluir_livro_e_copias(id_livro):
 
     # título (livro)
     titulos_manter = []
+    livro_excluido = None
+    
     for livro in _lst_livros:
         if (livro["ID_Livro"] != id_livro):
             titulos_manter.append(livro)
@@ -149,6 +152,11 @@ def excluir_livro_e_copias(id_livro):
     
     _lst_livros = titulos_manter
 
-    print(f"SUCESSO: Livro '{livro_excluido}' (ID: {id_livro})")
-    print(f"e suas {qtd_copias_removidas} cópias foram excluídos.")
+    if livro_excluido:
+        print(f"SUCESSO: Livro '{livro_excluido}' (ID: {id_livro})")
+        print(f"e suas {qtd_copias_removidas} cópias foram excluídos.")
+    else:
+        # Caso do ID inexistente
+        print(f"INFO: Nenhum livro encontrado com o ID {id_livro}.")
+    
     return True
