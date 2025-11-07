@@ -35,22 +35,22 @@ def cadastrar_livro(titulo, autor, edicao):
             livro_existente = livro
             break # não procura mais 
 
-        if livro_existente:
-            print(f"Erro! O livro '{titulo}'  (Ed. {edicao}) já está cadastrado com o Id {livro["ID_livro"]}.")
-            return livro_existente
-        
-        else: 
-            novo_livro = {
-                "ID_Livro": _prox_id_livro,
-                "Titulo": titulo,
-                "Autor": autor,
-                "Edicao": edicao
-            }
+    if livro_existente:
+        # print(f"Erro! O livro '{titulo}'  (Ed. {edicao}) já está cadastrado com o Id {livro["ID_livro"]}.")
+        return livro_existente
+    
+    else: 
+        novo_livro = {
+            "ID_Livro": _prox_id_livro,
+            "Titulo": titulo,
+            "Autor": autor,
+            "Edicao": edicao
+        }
 
-            _lst_livros.append(novo_livro)
-            _prox_id_livro += 1
-        
-            return novo_livro
+        _lst_livros.append(novo_livro)
+        _prox_id_livro += 1
+    
+        return novo_livro
 
 
 def add_copias(id_livro_ref, localiazacao):
@@ -69,27 +69,27 @@ def add_copias(id_livro_ref, localiazacao):
             livro_existe = True
             break
 
-        if not livro_existe:
-            print(f"Erro: Não é possível adicionar cópia. O Livro com id {id_livro_ref} não existe.")
-            return None
-            
-        else:
+    if not livro_existe:
+        print(f"Erro: Não é possível adicionar cópia. O Livro com id {id_livro_ref} não existe.")
+        return None
+        
+    else:
 
-            nova_copia = {
-                "ID_Copia": _prox_id_copia,
-                "ID_Livro_Referencia": id_livro_ref,
-                "LocalizacaoFisica": localiazacao,
-                "Status": "Disponível" 
-            }
+        nova_copia = {
+            "ID_Copia": _prox_id_copia,
+            "ID_Livro_Referencia": id_livro_ref,
+            "LocalizacaoFisica": localiazacao,
+            "Status": "Disponível" 
+        }
 
-            _lst_copias_livros.append(nova_copia)
-            _prox_id_copia += 1
+        _lst_copias_livros.append(nova_copia)
+        _prox_id_copia += 1
 
-            return nova_copia
+        return nova_copia
 
 
 
-def buscar_livro(termo_busca):
+def buscar_cópia(termo_busca):
 
     '''
         Busca e retorna uma lista de livros (cópia) e sua disponibilidade
@@ -105,7 +105,7 @@ def buscar_livro(termo_busca):
     return result_busca
 
 
-def excluir_livro(id_livro):
+def excluir_livro_e_copias(id_livro):
 
     '''
         Remove um título e todas as suas cópias
@@ -121,11 +121,11 @@ def excluir_livro(id_livro):
             copia_emprestada = copia
             break
 
-        if copia_emprestada:
-            print(f"ERRO: Exclusão falhou.")
-            print(f"O livro (ID: {id_livro}) não pode ser excluído pois a")
-            print(f"cópia (ID: {copia_emprestada['ID_Copia']}) está 'Emprestado'.")
-            return False 
+    if copia_emprestada:
+        print(f"ERRO: Exclusão falhou.")
+        print(f"O livro (ID: {id_livro}) não pode ser excluído pois a")
+        print(f"cópia (ID: {copia_emprestada['ID_Copia']}) está 'Emprestado'.")
+        return False 
 
     # Exclusão (de forma segura)
     
