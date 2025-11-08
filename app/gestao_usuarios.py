@@ -68,7 +68,7 @@ def cadastrar_cliente(nome, cpf, endereco, tel, senha):
         "ID_Cliente": _prox_id_cliente,
         "Nome": nome,
         "CPF": cpf,
-        "Endereço": endereco,
+        "Endereco": endereco,
         "Telefone": tel,
         "SenhaHash": _gerar_hash_senha(senha)
     }
@@ -103,7 +103,7 @@ def excluir_cliente(cpf, _lst_emprestimos_ativos):
     tem_pendencias = False
 
     for emprestimo in _lst_emprestimos_ativos:
-        if (emprestimo["ID_Cliente_Refencia"] == id_cliente
+        if (emprestimo["ID_Cliente_Referencia"] == id_cliente
             and emprestimo["Status"] != "Finalizado"
         ):
             tem_pendencias = True
@@ -114,7 +114,7 @@ def excluir_cliente(cpf, _lst_emprestimos_ativos):
         return False
     
     # Foi encontrado e não tem pendencias
-    _lst_emprestimos_ativos.remove(cliente_encontrado)
+    _lst_clientes.remove(cliente_encontrado)
     print(f"Excluido: Cliente: {cliente_encontrado['Nome']} | (CPF: {cpf})")
     return True
 
@@ -158,4 +158,13 @@ def autenticar(usuario, senha):
     return None
 
 
- 
+def inicializar_admin_padrao():
+    '''
+        Verifica se a lista de funcionários está vazia
+        Se estiver, cria o administrador padrão 
+    '''
+
+    global _lst_funcionarios
+    
+    if len(_lst_funcionarios) == 0:
+        cadastrar_funcionario("admin", "admin123", "Administrador")
