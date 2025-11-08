@@ -15,6 +15,8 @@
 #     Telefone (Texto)
 #     SenhaHash (Texto)
 
+import hashlib
+# importar módulo de Emprestimos para consultar pendencias
 
 '''
     Em python, sem classe, nãoconsigo fazer uma "struct". Então vou usar um dicionário para agrupar 
@@ -25,6 +27,14 @@ _lst_clientes = []
 
 _prox_id_funcionario = 1
 _prox_id_cliente = 1 #contador para gerar os ids automaticamente
+
+
+def _gerar_hash_senha(senha):
+    '''
+        Função auxiliar para gerar um hash SHA256 estável
+    '''
+
+    return hashlib.sha256(senha.encode('utf-8')).hexdigest()
 
 
 def cadastrar_funcionario(nome, senha, papel):
@@ -38,7 +48,7 @@ def cadastrar_funcionario(nome, senha, papel):
     novo_func = {
         "ID_Funcionario": _prox_id_funcionario,
         "NomeUsuario": nome,
-        "SenhaHash": hash(senha),
+        "SenhaHash": _gerar_hash_senha(senha),
         "Papel": papel
     }
 
@@ -60,7 +70,7 @@ def cadastrar_cliente(nome, cpf, endereco, tel, senha):
         "CPF": cpf,
         "Endereço": endereco,
         "Telefone": tel,
-        "SenhaHash": hash(senha)
+        "SenhaHash": _gerar_hash_senha(senha)
     }
 
     _lst_clientes.append(novo_cliente) 
@@ -68,26 +78,84 @@ def cadastrar_cliente(nome, cpf, endereco, tel, senha):
 
     return novo_cliente
 
-def excluir_cliente(cpf):
+def excluir_cliente(cpf, _lst_emprestimos_ativos):
 
     '''
         Busca o cliente pelo Id e remove da lista
-        Retorna True se foi excluído, False se não foi encontrado.
+        Verificando antes se o cliente possui empréstimos pendentes
+        Retorna True se foi excluído, False se não foi encontrado ou se tem pendências
     '''
-    indice_excluir = -1
+    cliente_encontrado = None
 
-    # usando enumerate() para ter o índice e o dicionário do cliente
-    for i, cliente in enumerate(_lst_clientes):
+    # acha o cliente na lista
+    for cliente in _lst_clientes:
 
         if ( cliente["CPF"] == cpf):
-            indice_excluir = i
+            cliente_encontrado = cliente
             break
 
-    if indice_excluir != -1:
-        cliente_removido = _lst_clientes.pop(indice_excluir)
-        print(f"Excluido: Cliente: {cliente_removido['Nome']} | (Id: {cpf})")
-        return True
-    
-    else:
+    if not cliente_encontrado:
         print(f"Erro! Cliente com CPF: {cpf} não encontrado")
         return False
+    
+    # procura pendências na lst de emprestimo
+    id_cliente = cliente_encontrado["ID_Cliente"]
+    tem_pendencias = False
+
+    for emprestimo in _lst_emprestimos_ativos:
+        if (emprestimo["ID_Cliente_Refencia"] == id_cliente
+            and emprestimo["Status"] != "Finalizado"
+        ):
+            tem_pendencias = True
+            break
+
+    if tem_pendencias:
+        print(f"Erro! Cliente {cliente_encontrado['Nome']} (CPF: {cpf}) não pode ser excluído pois tem empréstimos pendentes.")
+        return False
+    
+    # Foi encontrado e não tem pendencias
+    _lst_emprestimos_ativos.remove(cliente_encontrado)
+    print(f"Excluido: Cliente: {cliente_encontrado['Nome']} | (CPF: {cpf})")
+    return True
+
+
+def autenticar(usuario, senha):
+    '''
+        Verifica as credencias nas listas de funcionarios e clientes
+        Para funcionários, 'usuario' é o 'NomeUsuario'
+        Para cliente, o'usuario' é o 'CPF'
+        Retorna um dicionário com os dados do usuário ou None se falhar
+    '''
+    # gera hash da senha fornecida para comparação
+    senha_hash_comp = _gerar_hash_senha(senha)
+
+    # funcionario
+    for funcionario in _lst_funcionarios:
+        if (funcionario["NomeUsuario"] == usuario
+            and funcionario["SenhaHash"] == senha_hash_comp
+        ):
+            # retorna os dados
+            return {
+                "Tipo": "Funcionario",
+                "ID": funcionario["ID_Funcionario"],
+                "Papel": funcionario["Papel"],
+                "Token": f"TOKEN_FUNC_{funcionario["ID_Funcionario"]}" # token simulado
+            }
+
+    # cliente
+    for cliente in _lst_clientes:
+        if (cliente["CPF"] == usuario
+            and cliente["SenhaHash"] == senha_hash_comp
+        ):
+            # retorna os dados
+            return {
+                "Tipo": "Cliente",
+                "ID": cliente["ID_Cliente"],
+                "Token": f"TOKEN_CLIENTE_{cliente["ID_Cliente"]}" # token simulado
+            }
+        
+    # não achou 
+    return None
+
+
+ 
