@@ -53,7 +53,7 @@ def cadastrar_livro(titulo, autor, edicao):
         return novo_livro
 
 
-def add_copias(id_livro_ref, localiazacao):
+def add_copias(id_livro_ref, qtd_copias, localiazacao):
     
     '''
         Adiciona cópia de um livro existente na lista de livros
@@ -62,6 +62,7 @@ def add_copias(id_livro_ref, localiazacao):
     global _prox_id_copia
 
     livro_existe = False
+    copias_add = []
 
     for livro in _lst_livros:
 
@@ -75,17 +76,21 @@ def add_copias(id_livro_ref, localiazacao):
         
     else:
 
-        nova_copia = {
-            "ID_Copia": _prox_id_copia,
-            "ID_Livro_Referencia": id_livro_ref,
-            "LocalizacaoFisica": localiazacao,
-            "Status": "Disponível" 
-        }
+        for i in range(qtd_copias):
 
-        _lst_copias_livros.append(nova_copia)
-        _prox_id_copia += 1
+            nova_copia = {
+                "ID_Copia": _prox_id_copia,
+                "ID_Livro_Referencia": id_livro_ref,
+                "LocalizacaoFisica": localiazacao,
+                "Status": "Disponível" 
+            }
 
-        return nova_copia
+            _lst_copias_livros.append(nova_copia)
+            copias_add.append(nova_copia)
+            _prox_id_copia += 1
+
+        
+        return copias_add
 
 
 
@@ -137,7 +142,7 @@ def excluir_livro_e_copias(id_livro):
     for copia in _lst_copias_livros:
         
         if ( copia["ID_Livro_Referencia"] == id_livro ):
-            if copia["Status"] == "Emprestada":
+            if copia["Status"] == "Emprestado":
                 copia_emprestada = copia
                 break
 
