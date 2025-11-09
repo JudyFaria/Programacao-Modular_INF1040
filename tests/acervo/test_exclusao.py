@@ -14,11 +14,11 @@ def setup_teste():
 
 def test_exclusao_livro_copias_disponiveis():
     livro = acervo.cadastrar_livro("Senhora Dona do Baile", "Zélia Gattai", "Record")  
-    copia_1 = acervo.add_copias(livro["ID_Livro"], "Corredor 3, Prateleira A")
+    copia = acervo.add_copias(livro["ID_Livro"], 1, "Corredor 3, Prateleira A")
 
     assert len(acervo._lst_copias_livros) == 1
     assert len(acervo._lst_livros) == 1
-    assert copia_1["Status"] == "Disponível"
+    assert copia[0]["Status"] == "Disponível"
     
     exclusao = acervo.excluir_livro_e_copias(livro["ID_Livro"])
 
@@ -27,16 +27,12 @@ def test_exclusao_livro_copias_disponiveis():
 
 
 def test_exclusao_livro_com_copia_emprestada():
-    livro = acervo.cadastrar_livro("Senhora Dona do Baile", "Zélia Gattai", "Record")
+    livro = acervo.cadastrar_livro("Senhora Dona do Baile", "Zélia Gattai", "Record")   
+    copias = acervo.add_copias(livro["ID_Livro"], 4, "Corredor 3, Prateleira A")
     
-    copia_1 = acervo.add_copias(livro["ID_Livro"], "Corredor 3, Prateleira A")
-    copia_2 = acervo.add_copias(livro["ID_Livro"], "Corredor 3, Prateleira A")
-    copia_3 = acervo.add_copias(livro["ID_Livro"], "Corredor 3, Prateleira A")
-    copia_4 = acervo.add_copias(livro["ID_Livro"], "Corredor 3, Prateleira A")
+    copias[2]["Status"] = "Emprestado"
 
-    copia_3["Status"] = "Emprestada"
-
-    assert copia_3["Status"] != "Disponível"
+    assert copias[2]["Status"] != "Disponível"
 
     exclusao = acervo.excluir_livro_e_copias(livro["ID_Livro"])
 
@@ -47,7 +43,7 @@ def test_exclusao_livro_com_copia_emprestada():
 def test_exclusao_livro_id_inexistente():
 
     livro = acervo.cadastrar_livro("Senhora Dona do Baile", "Zélia Gattai", "Record")  
-    copia_1 = acervo.add_copias(livro["ID_Livro"], "Corredor 3, Prateleira A")
+    copia = acervo.add_copias(livro["ID_Livro"], 1, "Corredor 3, Prateleira A")
 
     assert len(acervo._lst_livros) == 1
     assert len(acervo._lst_copias_livros) == 1
@@ -62,12 +58,11 @@ def test_exclusao_livro_id_inexistente():
 
 def test_exclusao_nao_afeta_outros_livros():
     livro_1 = acervo.cadastrar_livro("Senhora Dona do Baile", "Zélia Gattai", "Record")  
-    copia_1 = acervo.add_copias(livro_1["ID_Livro"], "Corredor 3, Prateleira A")
-    copia_2 = acervo.add_copias(livro_1["ID_Livro"], "Corredor 3, Prateleira A")
+    copia_l1 = acervo.add_copias(livro_1["ID_Livro"], 2, "Corredor 3, Prateleira A")
 
 
     livro_2 = acervo.cadastrar_livro("O Cavaleiro das Cruzadas", "Ana Seymour", "Nova Cultural")    
-    copia_3 = acervo.add_copias(livro_2["ID_Livro"], "Corredor 3, Prateleira B")
+    copia_l2 = acervo.add_copias(livro_2["ID_Livro"], 1, "Corredor 3, Prateleira B")
 
     assert len(acervo._lst_livros) == 2
     assert len(acervo._lst_copias_livros) == 3

@@ -18,10 +18,10 @@ def test_add_copia_livro_existente():
     '''
 
     livro = acervo.cadastrar_livro("Senhora Dona do Baile", "Zélia Gattai", "Record")
-    copia_1 = acervo.add_copias(livro["ID_Livro"], "Corredor 3, Prateleira A")
+    copia = acervo.add_copias(livro["ID_Livro"], 1,"Corredor 3, Prateleira A")
 
-    assert isinstance(copia_1, dict)
-    assert copia_1["ID_Livro_Referencia"] == livro["ID_Livro"]
+    assert isinstance(copia, list)
+    assert copia[0]["ID_Livro_Referencia"] == livro["ID_Livro"]
     assert len(acervo._lst_copias_livros) > 0
     
     assert acervo._prox_id_copia == 2
@@ -33,7 +33,7 @@ def test_add_copia_livro_inexistente():
         Garante que não é adicionado cópias para livros não existentes
     '''
 
-    copia_1 = acervo.add_copias(1, "Corredor 3, Prateleira A")
+    copia = acervo.add_copias(1, 1, "Corredor 3, Prateleira A")
 
     assert len(acervo._lst_copias_livros) == 0
 
@@ -46,9 +46,9 @@ def test_status_add_copia():
     '''
 
     livro = acervo.cadastrar_livro("Senhora Dona do Baile", "Zélia Gattai", "Record")
-    copia_1 = acervo.add_copias(livro["ID_Livro"], "Corredor 3, Prateleira A")
+    copia = acervo.add_copias(livro["ID_Livro"], 1,"Corredor 3, Prateleira A")
 
-    assert copia_1["Status"] == "Disponível"
+    assert copia[0]["Status"] == "Disponível"
 
 # dentro da listra de copias, se id ref igual, então id cópias diferentes
 def test_add_multiplas_copias_um_livro():
@@ -61,14 +61,11 @@ def test_add_multiplas_copias_um_livro():
    
     livro = acervo.cadastrar_livro("Senhora Dona do Baile", "Zélia Gattai", "Record")
     
-    copia_1 = acervo.add_copias(livro["ID_Livro"], "Corredor 3, Prateleira A")
-    copia_2 = acervo.add_copias(livro["ID_Livro"], "Corredor 3, Prateleira A")
-    copia_3 = acervo.add_copias(livro["ID_Livro"], "Corredor 3, Prateleira A")
-    copia_4 = acervo.add_copias(livro["ID_Livro"], "Corredor 3, Prateleira A")
-
+    copias = acervo.add_copias(livro["ID_Livro"], 4,"Corredor 3, Prateleira A")
+   
     assert len(acervo._lst_copias_livros) == 4
-    assert copia_1["ID_Livro_Referencia"] == copia_4["ID_Livro_Referencia"] 
-    assert copia_1["ID_Copia"] != copia_4["ID_Copia"]
+    assert copias[1]["ID_Livro_Referencia"] == copias[3]["ID_Livro_Referencia"] 
+    assert copias[1]["ID_Copia"] != copias[2]["ID_Copia"]
 
     for copia in acervo._lst_copias_livros:
         assert copia["Status"] == "Disponível"

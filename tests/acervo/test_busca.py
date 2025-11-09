@@ -15,11 +15,11 @@ def setup_teste():
 def test_busca():
     
     livro_1 = acervo.cadastrar_livro("Senhora Dona do Baile", "Zélia Gattai", "Record")  
-    copia_1 = acervo.add_copias(livro_1["ID_Livro"], "Corredor 3, Prateleira A")
+    copia_1 = acervo.add_copias(livro_1["ID_Livro"], 1 ,"Corredor 3, Prateleira A")
   
 
     livro_2 = acervo.cadastrar_livro("O Cavaleiro das Cruzadas", "Ana Seymour", "Nova Cultural")    
-    copia_3 = acervo.add_copias(livro_2["ID_Livro"], "Corredor 3, Prateleira B")
+    copia_3 = acervo.add_copias(livro_2["ID_Livro"], 1 ,"Corredor 3, Prateleira B")
 
     busca = acervo.buscar_livro("cruzada")
     
@@ -31,11 +31,11 @@ def test_busca():
 
 def test_busca_infos_iguais():
     livro_1 = acervo.cadastrar_livro("O Hobbit", "Tolkien", "Companhia Das Letras")  
-    copia_1 = acervo.add_copias(livro_1["ID_Livro"], "Corredor 3, Prateleira A")
+    copia_1 = acervo.add_copias(livro_1["ID_Livro"], 1, "Corredor 3, Prateleira A")
   
 
     livro_2 = acervo.cadastrar_livro("O Silmarillion", "Tolkien", "LaFonte")    
-    copia_3 = acervo.add_copias(livro_2["ID_Livro"], "Corredor 3, Prateleira B")
+    copia_3 = acervo.add_copias(livro_2["ID_Livro"], 1, "Corredor 3, Prateleira B")
 
     busca = acervo.buscar_livro("TOLKIEN")
 
@@ -64,3 +64,19 @@ def test_busca_livro_sem_copias():
     assert isinstance(busca[0]["Copias"], list) 
     assert len(busca[0]["Copias"]) == 0
 
+
+def test_busca_multiplas_copias():
+
+    livro_1 = acervo.cadastrar_livro("Senhora Dona do Baile", "Zélia Gattai", "Record")  
+    copias = acervo.add_copias(livro_1["ID_Livro"], 3, "Corredor 3, Prateleira A")
+   
+    assert isinstance(copias, list)
+    assert len(copias) == 3
+
+    busca = busca = acervo.buscar_livro("dona")
+
+    assert len(busca[0]["Copias"]) == 3
+    
+    for i in range(3):
+        id_esperado = i + 1
+        assert busca[0]["Copias"][i]["ID_Copia"] == id_esperado
