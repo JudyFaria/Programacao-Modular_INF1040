@@ -17,6 +17,7 @@
 
 import hashlib
 # importar módulo de Emprestimos para consultar pendencias
+from src.sb import emprestimo 
 
 '''
     Em python, sem classe, nãoconsigo fazer uma "struct". Então vou usar um dicionário para agrupar 
@@ -45,6 +46,7 @@ def cadastrar_funcionario(nome, senha, papel):
 
     global _prox_id_funcionario, _lst_funcionarios # utilizando variável global
 
+
     novo_func = {
         "ID_Funcionario": _prox_id_funcionario,
         "NomeUsuario": nome,
@@ -64,6 +66,11 @@ def cadastrar_cliente(nome, cpf, endereco, tel, senha):
     '''
     global _prox_id_cliente, _lst_clientes
 
+    for cliente in _lst_clientes:
+        if cliente["CPF"] == cpf:
+            print(f"Cliente de cpf: {cpf}, já cadastrado!")
+            return None
+        
     novo_cliente = {
         "ID_Cliente": _prox_id_cliente,
         "Nome": nome,
@@ -78,7 +85,18 @@ def cadastrar_cliente(nome, cpf, endereco, tel, senha):
 
     return novo_cliente
 
-def excluir_cliente(cpf, _lst_emprestimos_ativos):
+
+def inicializar_admin_padrao():
+    '''
+        Verifica se a lista de funcionários está vazia
+        Se estiver, cria o administrador padrão 
+    '''
+
+    if len(_lst_funcionarios) == 0:
+        cadastrar_funcionario("admin", "admin123", "Administrador")
+
+
+def excluir_cliente(cpf):
 
     '''
         Busca o cliente pelo Id e remove da lista
@@ -102,9 +120,9 @@ def excluir_cliente(cpf, _lst_emprestimos_ativos):
     id_cliente = cliente_encontrado["ID_Cliente"]
     tem_pendencias = False
 
-    for emprestimo in _lst_emprestimos_ativos:
-        if (emprestimo["ID_Cliente_Referencia"] == id_cliente
-            and emprestimo["Status"] != "Finalizado"
+    for emprestimo in emprestimo._lst_emprestimos:
+        if (emprestimo.get("ID_Cliente_Referencia") == id_cliente
+            and emprestimo.get("Status") != "Finalizado"
         ):
             tem_pendencias = True
             break
@@ -157,14 +175,9 @@ def autenticar(usuario, senha):
     # não achou 
     return None
 
+# funções auxiliares para frontend
+def get_todos_clientes():
+    return _lst_clientes
 
-def inicializar_admin_padrao():
-    '''
-        Verifica se a lista de funcionários está vazia
-        Se estiver, cria o administrador padrão 
-    '''
-
-    global _lst_funcionarios
-    
-    if len(_lst_funcionarios) == 0:
-        cadastrar_funcionario("admin", "admin123", "Administrador")
+def get_todos_funcionarios():
+    return _lst_funcionarios
