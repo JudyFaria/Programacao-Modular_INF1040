@@ -1,8 +1,8 @@
 import streamlit as st
 
 # --- Importa os Módulos de Lógica (Backend Puro) ---
-from app import gestao_usuarios as gu
-from app import acervo as ac
+from src.sb import gestao_usuarios as gu
+from src.sb import acervo as ac
 # from app import gestao_emprestimos as ge
 
 # --- Importa os Módulos de UI (Frontend) ---
