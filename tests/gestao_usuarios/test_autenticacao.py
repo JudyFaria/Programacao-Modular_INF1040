@@ -1,5 +1,5 @@
 import pytest 
-import app.gestao_usuarios as gu
+import src.sb.gestao_usuarios as gu
 
 
 @pytest.fixture(autouse=True) # todos os testes rodam antes de executar

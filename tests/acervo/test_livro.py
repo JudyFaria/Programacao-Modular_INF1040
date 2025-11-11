@@ -1,5 +1,5 @@
 import pytest
-import app.acervo as acervo
+import src.sb.acervo as acervo
 
 @pytest.fixture(autouse=True) # todos os testes rodam antes de executar
 def setup_teste():
