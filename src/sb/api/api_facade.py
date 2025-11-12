@@ -1,7 +1,7 @@
 # Facade -> API interna
-from sb import acervo
-from sb import emprestimo as ge
-from sb import gestao_usuarios as gu
+from src.sb import acervo
+from src.sb import emprestimo as ge
+from src.sb import gestao_usuarios as gu
 
 
 def inicializar_sistema():
@@ -12,13 +12,13 @@ def inicializar_sistema():
     gu.inicializar_admin_padrao()
 
     # Dados de exemplo
-    livro_1, _ = acervo.cadastrar_livro("O Senhor dos Anéis", "J.R.R. Tolkien", "HarperCollins")
+    livro_1 = acervo.cadastrar_livro("O Senhor dos Anéis", "J.R.R. Tolkien", "HarperCollins")
     acervo.add_copias(livro_1["ID_Livro"], 3, "Corredor 1-A")
     
-    livro_2, _ = acervo.cadastrar_livro("Duna", "Frank Herbert", "Editora Aleph")
+    livro_2 = acervo.cadastrar_livro("Duna", "Frank Herbert", "Editora Aleph")
     acervo.add_copias(livro_2["ID_Livro"], 2, "Corredor 1-B")
     
-    cliente_1, _ = gu.cadastrar_cliente("Ana Silva", "111", "Rua A", "9999", "ana123")
+    cliente_1 = gu.cadastrar_cliente("Ana Silva", "111", "Rua A", "9999", "ana123")
     gu.cadastrar_funcionario("func_comum", "123", "Comum")
     
 
