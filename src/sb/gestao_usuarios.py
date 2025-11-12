@@ -157,7 +157,8 @@ def autenticar(usuario, senha):
                 "Tipo": "Funcionario",
                 "ID": funcionario["ID_Funcionario"],
                 "Papel": funcionario["Papel"],
-                "Token": f"TOKEN_FUNC_{funcionario["ID_Funcionario"]}" # token simulado
+                "Token": f"TOKEN_FUNC_{funcionario["ID_Funcionario"]}", # token simulado
+                "Nome" : funcionario["NomeUsuario"]
             }
 
     # cliente
@@ -169,7 +170,8 @@ def autenticar(usuario, senha):
             return {
                 "Tipo": "Cliente",
                 "ID": cliente["ID_Cliente"],
-                "Token": f"TOKEN_CLIENTE_{cliente["ID_Cliente"]}" # token simulado
+                "Token": f"TOKEN_CLIENTE_{cliente["ID_Cliente"]}", # token simulado
+                "Nome": cliente["Nome"]
             }
         
     # não achou 
