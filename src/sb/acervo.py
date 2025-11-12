@@ -12,9 +12,10 @@
 #     LocalizacaoFisica (Texto)
 #     Status (Texto: "Disponível", "Emprestado")
 
+from src.sb import emprestimo 
+
 _lst_livros = []
 _lst_copias_livros = []
-
 _prox_id_livro = 1
 _prox_id_copia = 1
 
@@ -26,12 +27,15 @@ def cadastrar_livro(titulo, autor, edicao):
         Retorna o dicionário do livro (novo ou o que já existia).
     '''
 
-    global _prox_id_livro
+    global _prox_id_livro, _lst_livros
     livro_existente = None
 
     for livro in _lst_livros:
 
-        if ( (livro["Titulo"] == titulo) and (livro["Autor"] ==  autor) and (livro["Edicao"] == edicao)):
+        if ( (livro["Titulo"] == titulo) 
+            and (livro["Autor"] ==  autor) 
+            and (livro["Edicao"] == edicao)
+        ):
             livro_existente = livro
             break # não procura mais 
 
@@ -59,7 +63,7 @@ def add_copias(id_livro_ref, qtd_copias, localiazacao):
         Adiciona cópia de um livro existente na lista de livros
     '''
 
-    global _prox_id_copia
+    global _prox_id_copia, _lst_copias_livros
 
     livro_existe = False
     copias_add = []
@@ -74,23 +78,21 @@ def add_copias(id_livro_ref, qtd_copias, localiazacao):
         print(f"Erro: Não é possível adicionar cópia. O Livro com id {id_livro_ref} não existe.")
         return None
         
-    else:
 
-        for i in range(qtd_copias):
+    for i in range(qtd_copias):
 
-            nova_copia = {
-                "ID_Copia": _prox_id_copia,
-                "ID_Livro_Referencia": id_livro_ref,
-                "LocalizacaoFisica": localiazacao,
-                "Status": "Disponível" 
-            }
+        nova_copia = {
+            "ID_Copia": _prox_id_copia,
+            "ID_Livro_Referencia": id_livro_ref,
+            "LocalizacaoFisica": localiazacao,
+            "Status": "Disponível" 
+        }
 
-            _lst_copias_livros.append(nova_copia)
-            copias_add.append(nova_copia)
-            _prox_id_copia += 1
+        _lst_copias_livros.append(nova_copia)
+        copias_add.append(nova_copia)
+        _prox_id_copia += 1
 
-        
-        return copias_add
+    return copias_add
 
 
 
@@ -100,7 +102,6 @@ def buscar_livro(termo_busca):
         Busca o livro por Título, Autor ou Edição (editora)
         Retorna uma lista das cópias do livro pesquisado e suas respectivas disponibilidades
     '''
-    global _lst_livros
     resultado_busca = []
 
     # encontrar os ids dos livros
@@ -142,8 +143,15 @@ def excluir_livro_e_copias(id_livro):
     for copia in _lst_copias_livros:
         
         if ( copia["ID_Livro_Referencia"] == id_livro ):
-            if copia["Status"] == "Emprestado":
-                copia_emprestada = copia
+            
+            for emprestimo in emprestimo._lst_emprestimo:
+                if ( (emprestimo.get("ID_Copia_Referencia") == copia["ID_Copia"]) 
+                    and (emprestimo.get("Status") != "Finalizado")
+                ):
+                    copia_emprestada = copia
+                    break
+
+            if (copia_emprestada):
                 break
 
     if copia_emprestada:
@@ -155,32 +163,23 @@ def excluir_livro_e_copias(id_livro):
     # Exclusão (de forma segura)
     
     # copias
-    copias_manter = []
-    for copia in _lst_copias_livros:
-        if (copia["ID_Livro_Referencia"] != id_livro):
-            copias_manter.append(copia)
-    
-    qtd_copias_removidas =  len(_lst_copias_livros) - len(copias_manter) # mensagem 
-    _lst_copias_livros = copias_manter
+    copias_manter = [c for c in _lst_copias_livros if c["ID_Livro_Referencia"] != id_livro]
+    livros_manter = [l for l in _lst_livros if l["ID_Livro"] != id_livro]
 
-    # título (livro)
-    titulos_manter = []
-    livro_excluido = None
-    
-    for livro in _lst_livros:
-        if (livro["ID_Livro"] != id_livro):
-            titulos_manter.append(livro)
-
-        else:
-            livro_excluido = livro["Titulo"] # mensagem
-    
-    _lst_livros = titulos_manter
-
-    if livro_excluido:
-        print(f"SUCESSO: Livro '{livro_excluido}' (ID: {id_livro})")
-        print(f"e suas {qtd_copias_removidas} cópias foram excluídos.")
-    else:
+    if len(livros_manter) == len(_lst_livros):
         # Caso do ID inexistente
         print(f"INFO: Nenhum livro encontrado com o ID {id_livro}.")
+        return False
     
+    _lst_copias_livros = copias_manter
+    _lst_livros = livros_manter
+
+    print(f"SUCESSO: Livro (ID: {id_livro}) e suas cópias foram excluídos.")
+   
     return True
+
+def get_todos_livros():
+    '''
+        Função auxiiar para o front end
+    '''
+    return _lst_livros
