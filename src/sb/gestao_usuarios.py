@@ -17,7 +17,7 @@
 
 import hashlib
 # importar módulo de Emprestimos para consultar pendencias
-from src.sb import emprestimo 
+from src.sb import emprestimo as ge
 
 '''
     Em python, sem classe, nãoconsigo fazer uma "struct". Então vou usar um dicionário para agrupar 
@@ -120,7 +120,7 @@ def excluir_cliente(cpf):
     id_cliente = cliente_encontrado["ID_Cliente"]
     tem_pendencias = False
 
-    for emprestimo in emprestimo._lst_emprestimos:
+    for emprestimo in ge._lst_emprestimos:
         if (emprestimo.get("ID_Cliente_Referencia") == id_cliente
             and emprestimo.get("Status") != "Finalizado"
         ):

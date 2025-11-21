@@ -35,7 +35,7 @@ def test_exclusao_cliente():
 
     assert len(gu._lst_clientes) == 1
 
-    exclusao = gu.excluir_cliente(cliente["CPF"], _lista_emprestimos_vazia)
+    exclusao = gu.excluir_cliente(cliente["CPF"])
 
     assert exclusao is True
     assert len(gu._lst_clientes) == 0
@@ -60,7 +60,7 @@ def test_exclusao_cliente_pendencia():
     
     assert len(gu._lst_clientes) == 1 # Garante que foi cadastrado
     
-    exclusao = gu.excluir_cliente(cliente["CPF"], _lista_emprestimos_ativo)
+    exclusao = gu.excluir_cliente(cliente["CPF"])
     
     assert exclusao is False
     assert len(gu._lst_clientes) == 1 
