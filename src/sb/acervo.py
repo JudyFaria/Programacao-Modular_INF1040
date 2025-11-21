@@ -13,11 +13,15 @@
 #     Status (Texto: "Disponível", "Emprestado")
 
 from src.sb import emprestimo 
+from src.sb import persistence
 
-_lst_livros = []
-_lst_copias_livros = []
-_prox_id_livro = 1
-_prox_id_copia = 1
+# Load persisted state (if any)
+_loaded_state = persistence.load("acervo", {})
+
+_lst_livros = _loaded_state.get("_lst_livros", [])
+_lst_copias_livros = _loaded_state.get("_lst_copias_livros", [])
+_prox_id_livro = _loaded_state.get("_prox_id_livro", 1)
+_prox_id_copia = _loaded_state.get("_prox_id_copia", 1)
 
 def cadastrar_livro(titulo, autor, edicao):
 
@@ -53,6 +57,13 @@ def cadastrar_livro(titulo, autor, edicao):
 
         _lst_livros.append(novo_livro)
         _prox_id_livro += 1
+        # persist changes
+        persistence.save("acervo", {
+            "_lst_livros": _lst_livros,
+            "_lst_copias_livros": _lst_copias_livros,
+            "_prox_id_livro": _prox_id_livro,
+            "_prox_id_copia": _prox_id_copia,
+        })
     
         return novo_livro
 
@@ -91,6 +102,14 @@ def add_copias(id_livro_ref, qtd_copias, localiazacao):
         _lst_copias_livros.append(nova_copia)
         copias_add.append(nova_copia)
         _prox_id_copia += 1
+
+    # persist changes
+    persistence.save("acervo", {
+        "_lst_livros": _lst_livros,
+        "_lst_copias_livros": _lst_copias_livros,
+        "_prox_id_livro": _prox_id_livro,
+        "_prox_id_copia": _prox_id_copia,
+    })
 
     return copias_add
 
@@ -176,6 +195,14 @@ def excluir_livro_e_copias(id_livro):
 
     print(f"SUCESSO: Livro (ID: {id_livro}) e suas cópias foram excluídos.")
    
+    # persist changes
+    persistence.save("acervo", {
+        "_lst_livros": _lst_livros,
+        "_lst_copias_livros": _lst_copias_livros,
+        "_prox_id_livro": _prox_id_livro,
+        "_prox_id_copia": _prox_id_copia,
+    })
+
     return True
 
 def get_todos_livros():
