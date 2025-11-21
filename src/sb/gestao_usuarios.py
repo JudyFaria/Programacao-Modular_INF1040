@@ -139,7 +139,7 @@ def excluir_cliente(cpf):
     id_cliente = cliente_encontrado["ID_Cliente"]
     tem_pendencias = False
 
-    for emprestimo in emprestimo._lst_emprestimos:
+    for emprestimo in ge._lst_emprestimos:
         if (emprestimo.get("ID_Cliente_Referencia") == id_cliente
             and emprestimo.get("Status") != "Finalizado"
         ):

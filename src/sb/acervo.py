@@ -163,7 +163,7 @@ def excluir_livro_e_copias(id_livro):
         
         if ( copia["ID_Livro_Referencia"] == id_livro ):
             
-            for emprestimo in emprestimo._lst_emprestimo:
+            for emprestimo in ge._lst_emprestimos:
                 if ( (emprestimo.get("ID_Copia_Referencia") == copia["ID_Copia"]) 
                     and (emprestimo.get("Status") != "Finalizado")
                 ):
