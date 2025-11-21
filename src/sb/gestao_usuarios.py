@@ -16,18 +16,20 @@
 #     SenhaHash (Texto)
 
 import hashlib
-# importar módulo de Emprestimos para consultar pendencias
-from src.sb import emprestimo 
+from src.sb import emprestimo
+from src.sb import persistence
 
 '''
     Em python, sem classe, nãoconsigo fazer uma "struct". Então vou usar um dicionário para agrupar 
 '''
 
-_lst_funcionarios = []
-_lst_clientes = []
+_loaded_state = persistence.load("gestao_usuarios", {})
 
-_prox_id_funcionario = 1
-_prox_id_cliente = 1 #contador para gerar os ids automaticamente
+_lst_funcionarios = _loaded_state.get("_lst_funcionarios", [])
+_lst_clientes = _loaded_state.get("_lst_clientes", [])
+
+_prox_id_funcionario = _loaded_state.get("_prox_id_funcionario", 1)
+_prox_id_cliente = _loaded_state.get("_prox_id_cliente", 1) #contador para gerar os ids automaticamente
 
 
 def _gerar_hash_senha(senha):
@@ -57,6 +59,14 @@ def cadastrar_funcionario(nome, senha, papel):
     _lst_funcionarios.append(novo_func) # addicionando na lista 
     _prox_id_funcionario += 1
 
+    # persist changes
+    persistence.save("gestao_usuarios", {
+        "_lst_funcionarios": _lst_funcionarios,
+        "_lst_clientes": _lst_clientes,
+        "_prox_id_funcionario": _prox_id_funcionario,
+        "_prox_id_cliente": _prox_id_cliente,
+    })
+
     return novo_func
 
 def cadastrar_cliente(nome, cpf, endereco, tel, senha):
@@ -83,6 +93,14 @@ def cadastrar_cliente(nome, cpf, endereco, tel, senha):
     _lst_clientes.append(novo_cliente) 
     _prox_id_cliente += 1
 
+    # persist changes
+    persistence.save("gestao_usuarios", {
+        "_lst_funcionarios": _lst_funcionarios,
+        "_lst_clientes": _lst_clientes,
+        "_prox_id_funcionario": _prox_id_funcionario,
+        "_prox_id_cliente": _prox_id_cliente,
+    })
+
     return novo_cliente
 
 
@@ -94,6 +112,7 @@ def inicializar_admin_padrao():
 
     if len(_lst_funcionarios) == 0:
         cadastrar_funcionario("admin", "admin123", "Administrador")
+        # cadastrar_funcionario already persists the change
 
 
 def excluir_cliente(cpf):
@@ -134,6 +153,13 @@ def excluir_cliente(cpf):
     # Foi encontrado e não tem pendencias
     _lst_clientes.remove(cliente_encontrado)
     print(f"Excluido: Cliente: {cliente_encontrado['Nome']} | (CPF: {cpf})")
+    # persist changes
+    persistence.save("gestao_usuarios", {
+        "_lst_funcionarios": _lst_funcionarios,
+        "_lst_clientes": _lst_clientes,
+        "_prox_id_funcionario": _prox_id_funcionario,
+        "_prox_id_cliente": _prox_id_cliente,
+    })
     return True
 
 
