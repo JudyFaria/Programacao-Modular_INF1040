@@ -12,7 +12,7 @@
 #     LocalizacaoFisica (Texto)
 #     Status (Texto: "Disponível", "Emprestado")
 
-from src.sb import emprestimo 
+from src.sb import emprestimo as ge
 from src.sb import persistence
 
 # Load persisted state (if any)

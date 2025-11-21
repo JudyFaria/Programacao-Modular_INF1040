@@ -16,7 +16,7 @@
 #     SenhaHash (Texto)
 
 import hashlib
-from src.sb import emprestimo
+from src.sb import emprestimo as ge
 from src.sb import persistence
 
 '''
