@@ -21,6 +21,8 @@ def inicializar_sistema():
     cliente_1 = gu.cadastrar_cliente("Ana Silva", "111", "Rua A", "9999", "ana123")
     gu.cadastrar_funcionario("func_comum", "123", "Comum")
     
+    # Verifica se algo venceu hoje
+    ge.verificar_atrasos(ge._lst_emprestimos)
 
 # Wrappers - Gestão de Usuário
 def autenticar_usuario(usuario, senha):
@@ -51,3 +53,55 @@ def add_copias(id_livro, qtd, loc):
 
 def excluir_livro(id_livro):
     return acervo.excluir_livro_e_copias(id_livro)
+
+
+# Wrappers - Empréstimo
+def verificar_atrasos_no_inicio():
+    """Chamado no startup para atualizar status"""
+    ge.verificar_atrasos(ge._lst_emprestimos)
+
+def criar_emprestimo(id_cliente, id_copia):
+    (
+        ge._lst_emprestimos, 
+        acervo._lst_copias_livros, 
+        ge._prox_id_emprestimo, 
+        sucesso, 
+        msg
+    ) = ge.criar_emprestimo(
+        id_cliente, 
+        id_copia, 
+        ge._lst_emprestimos, 
+        acervo._lst_copias_livros, 
+        ge._prox_id_emprestimo
+    )
+    return sucesso, msg
+
+def registrar_devolucao(id_copia):
+    (
+        ge._lst_emprestimos,
+        acervo._lst_copias_livros,
+        sucesso,
+        msg
+    ) = ge.registrar_devolucao(
+        id_copia,
+        ge._lst_emprestimos,
+        acervo._lst_copias_livros
+    )
+    return sucesso, msg
+
+def renovar_emprestimo(id_emprestimo, tipo_usuario):
+    (
+        ge._lst_emprestimos,
+        sucesso,
+        msg
+    ) = ge.renovar_emprestimo(
+        id_emprestimo,
+        tipo_usuario,
+        ge._lst_emprestimos
+    )
+    return sucesso, msg
+
+def get_historico_cliente(id_cliente):
+    # Filtra apenas os empréstimos deste cliente
+    todos = ge.get_todos_emprestimos()
+    return [e for e in todos if e["ID_Cliente_Referencia"] == id_cliente]
