@@ -1,5 +1,10 @@
 import pytest
+<<<<<<< Updated upstream
 import app.acervo as acervo
+=======
+import src.sb.acervo as acervo
+import src.sb.persistence as persistence
+>>>>>>> Stashed changes
 
 @pytest.fixture(autouse=True) # todos os testes rodam antes de executar
 def setup_teste():
@@ -24,6 +29,10 @@ def test_exclusao_livro_copias_disponiveis():
 
     assert len(acervo._lst_copias_livros) == 0
     assert len(acervo._lst_livros) == 0
+
+     # assert no arquivo
+    state = persistence.load("acervo", {})
+    assert state.get("_lst_livros", []) == []
 
 
 def test_exclusao_livro_com_copia_emprestada():
@@ -51,7 +60,7 @@ def test_exclusao_livro_id_inexistente():
     id_inexistente = 999
     exclusao = acervo.excluir_livro_e_copias(id_inexistente)
 
-    assert exclusao == True
+    assert exclusao == False #não exclui
     assert len(acervo._lst_livros) == 1
     assert len(acervo._lst_copias_livros) == 1
 

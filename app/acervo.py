@@ -142,8 +142,25 @@ def excluir_livro_e_copias(id_livro):
     for copia in _lst_copias_livros:
         
         if ( copia["ID_Livro_Referencia"] == id_livro ):
+<<<<<<< Updated upstream:app/acervo.py
             if copia["Status"] == "Emprestado":
                 copia_emprestada = copia
+=======
+
+            # se o status da cópia já indica 'Emprestado', basta bloquear
+            if copia.get("Status") == "Emprestado":
+                copia_emprestada = copia
+                break
+            
+            for emprestimo in ge._lst_emprestimos:
+                if ( (emprestimo.get("ID_Copia_Referencia") == copia["ID_Copia"]) 
+                    and (emprestimo.get("Status") != "Finalizado")
+                ):
+                    copia_emprestada = copia
+                    break
+
+            if (copia_emprestada):
+>>>>>>> Stashed changes:src/sb/acervo.py
                 break
 
     if copia_emprestada:
