@@ -1,14 +1,7 @@
 import pytest
-<<<<<<< HEAD
-import src.sb.acervo as acervo
-=======
-<<<<<<< Updated upstream
-import app.acervo as acervo
-=======
+
 import src.sb.acervo as acervo
 import src.sb.persistence as persistence
->>>>>>> Stashed changes
->>>>>>> 8cf9d850b4e34a56e696c1870c241d69b14e39af
 
 @pytest.fixture(autouse=True) # todos os testes rodam antes de executar
 def setup_teste():
