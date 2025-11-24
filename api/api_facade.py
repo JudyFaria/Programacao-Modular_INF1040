@@ -6,22 +6,56 @@ import src.sb.multa as multa
 
 def inicializar_sistema():
     '''
-        Função chamada uma única vez para popular o backend
+    Função chamada uma única vez para popular o backend.
+    Agora é IDEMPOTENTE: não duplica dados se rodar múltiplas vezes.
     '''
-
     gu.inicializar_admin_padrao()
+    
+    # --- 1. POPULA ACERVO (Apenas se não houver livros) ---
+    livros_existentes = acervo.get_todos_livros()
+    
+    if not livros_existentes:
+        print("Inicializando Acervo com dados de exemplo...")
+        
+        # Livro 1
+        l1 = acervo.cadastrar_livro("O Senhor dos Anéis", "J.R.R. Tolkien", "HarperCollins")
+        # Se cadastrou agora (retornou dict), adiciona cópias
+        if l1: 
+            acervo.add_copias(l1["ID_Livro"], 3, "Corredor 1-A")
+        
+        # Livro 2
+        l2 = acervo.cadastrar_livro("Duna", "Frank Herbert", "Editora Aleph")
+        if l2:
+            acervo.add_copias(l2["ID_Livro"], 2, "Corredor 1-B")
 
-    # Dados de exemplo
-    livro_1 = acervo.cadastrar_livro("O Senhor dos Anéis", "J.R.R. Tolkien", "HarperCollins")
-    acervo.add_copias(livro_1["ID_Livro"], 3, "Corredor 1-A")
+    # --- 2. POPULA CLIENTES (Verifica duplicidade por CPF) ---
+    clientes = gu.get_todos_clientes()
+    cpf_exemplo = "111"
     
-    livro_2 = acervo.cadastrar_livro("Duna", "Frank Herbert", "Editora Aleph")
-    acervo.add_copias(livro_2["ID_Livro"], 2, "Corredor 1-B")
+    # Verifica se já existe algum cliente com esse CPF na lista
+    cliente_existe = False
+    for c in clientes:
+        if str(c.get('CPF')).strip() == cpf_exemplo:
+            cliente_existe = True
+            break
     
-    cliente_1 = gu.cadastrar_cliente("Ana Silva", "111", "Rua A", "9999", "ana123")
-    gu.cadastrar_funcionario("func_comum", "123", "Comum")
+    if not cliente_existe:
+        gu.cadastrar_cliente("Ana Silva", cpf_exemplo, "Rua A", "9999", "ana123")
+
+    # --- 3. POPULA FUNCIONÁRIOS (Verifica duplicidade por Usuário) ---
+    funcionarios = gu.get_todos_funcionarios()
+    user_exemplo = "func_comum"
     
-    # Verifica se algo venceu hoje
+    func_existe = False
+    for f in funcionarios:
+        if f.get('NomeUsuario') == user_exemplo:
+            func_existe = True
+            break
+    
+    if not func_existe:
+        gu.cadastrar_funcionario(user_exemplo, "123", "Comum")
+
+    # Verifica atrasos
     ge.verificar_e_atualizar_atrasos()
 
 # Wrappers - Gestão de Usuário
@@ -29,7 +63,7 @@ def autenticar_usuario(usuario, senha):
     return gu.autenticar(usuario, senha)
 
 def cadastrar_cliente(nome, cpf, endereco, tel, senha):
-    res = gu.cadastrar_cliente(nome, cpf, end, tel, senha)
+    res = gu.cadastrar_cliente(nome, cpf, endereco, tel, senha)
     if res: return f"Sucesso! Cliente {res['Nome']} cadastrado."
     return "Erro: CPF já existe."
 
