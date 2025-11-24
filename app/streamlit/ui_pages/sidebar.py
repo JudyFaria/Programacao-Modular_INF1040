@@ -38,8 +38,8 @@ def render_sidebar_nav_e_logout(api, todas_as_paginas):
     '''
     
     usuario = st.session_state.usuario_logado
-    st.write(f"Bem-vindo(a), **{usuario.get('Papel')} {usuario.get('Nome', '_')}**!")
-    st.caption(f"Papel: {usuario['Tipo']} ({usuario.get('Papel', 'N/A')})")
+    st.write(f"Bem-vindo(a), **{usuario.get('Nome', '_')}**!")
+    st.caption(f"Papel: {usuario['Tipo']} ")
     st.divider()
 
     if usuario['Tipo'] == "Cliente":

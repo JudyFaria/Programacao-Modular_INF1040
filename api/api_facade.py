@@ -98,7 +98,7 @@ def criar_emprestimo(id_cliente, id_copia):
 def registrar_devolucao(id_copia):
     res = ge.registrar_devolucao(id_copia)
     if res: return True, "Devolução realizada."
-    return False, "Erro: Nenhum empréstimo ativo para esta cópia."
+    return False, "Erro: Nenhum empréstimo ativo para este exemplar."
 
 
 def renovar_emprestimo(id_emprestimo, tipo_usuario):

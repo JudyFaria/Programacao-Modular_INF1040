@@ -5,18 +5,24 @@
       "NomeUsuario": "admin",
       "SenhaHash": "240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9",
       "Papel": "Administrador"
+    },
+    {
+      "ID_Funcionario": 3,
+      "NomeUsuario": "judy",
+      "SenhaHash": "a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3",
+      "Papel": "Comum"
     }
   ],
   "_lst_clientes": [
     {
-      "ID_Cliente": 1,
-      "Nome": "Ana Silva",
-      "CPF": "111",
-      "Endereco": "Rua A",
-      "Telefone": "9999",
-      "SenhaHash": "e82827b00b2ca8620beb37f879778c082b292a52270390cff35b6fe3157f4e8b"
+      "ID_Cliente": 2,
+      "Nome": "judy",
+      "CPF": "123",
+      "Endereco": "test",
+      "Telefone": "21992530089",
+      "SenhaHash": "a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3"
     }
   ],
-  "_prox_id_funcionario": 3,
-  "_prox_id_cliente": 2
+  "_prox_id_funcionario": 4,
+  "_prox_id_cliente": 3
 }

@@ -57,7 +57,7 @@ def render_page_meus_emprestimos(api):
                     
                     with col1:
                         st.subheader(f"🔖 Empréstimo #{emp['ID_Emprestimo']}")
-                        st.caption(f"Cópia ID: {emp['ID_Copia_Referencia']}")
+                        st.caption(f"Exemplar ID: {emp['ID_Copia_Referencia']}")
                     
                     with col2:
                         data_prev = formatar_data(emp['DataDevolucaoPrevista'])
