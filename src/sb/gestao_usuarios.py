@@ -45,6 +45,7 @@ def cadastrar_funcionario(nome, senha, papel):
     '''
         Cria um novo funcionário, adicionando-o a lista e retornando o dicionário
     '''
+    
 
     global _prox_id_funcionario, _lst_funcionarios # utilizando variável global
 
@@ -70,9 +71,19 @@ def cadastrar_funcionario(nome, senha, papel):
     return novo_func
 
 def cadastrar_cliente(nome, cpf, endereco, tel, senha):
-    
     '''
-        Cria um novo cliente, adicionando-o a lista e retornando o dicionário
+        Cadastra um novo cliente no sistema.
+
+        Parâmetros:
+            nome (str): Nome completo do cliente.
+            cpf (str): CPF do cliente (deve ser único).
+            endereco (str): Endereço residencial.
+            tel (str): Telefone de contato.
+            senha (str): Senha em texto plano (será hashada).
+
+        Retorna:
+            dict: O dicionário do cliente criado se sucesso.
+            None: Se o CPF já estiver cadastrado.
     '''
     global _prox_id_cliente, _lst_clientes
 
