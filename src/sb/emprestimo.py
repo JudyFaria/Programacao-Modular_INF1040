@@ -1,190 +1,259 @@
-import datetime
+# Empréstimo:
+#     ID_Emprestimo (Inteiro, Chave Primária)
+#     ID_Copia_Referencia (Chave Estrangeira para Copia)
+#     ID_Cliente_Referencia (Chave Estrangeira para Cliente)
+#     DataInicio (Data)
+#     DataDevolucaoPrevista (Data)
+#     DataDevolucaoReal (Data, nulo até a devolução)
+#     Status (Texto: “Em andamento", "Atrasado", "Finalizado")
+
 from datetime import date, timedelta
+from src.sb import persistence
 
-# Estado Global do Módulo
-_lst_emprestimos = []
-_prox_id_emprestimo = 1
+_loaded_state = persistence.load("emprestimo", {})
 
-# --- Funções Auxiliares (Lógica Interna) ---
+_lst_emprestimos = _loaded_state.get("_lst_emprestimos", [])
+_prox_id_emprestimo = _loaded_state.get("_prox_id_emprestimo", 1)
+
+
+# funções auxiliares
+
+def salvar_alteracoes():
+    '''
+        Salva o estado atual no arquivo de persistência
+    '''
+    persistence.save("emprestimo", {
+        "_lst_emprestimos": _lst_emprestimos,
+        "_prox_id_emprestimo": _prox_id_emprestimo
+    })
 
 def _calcular_data_devolucao(data_inicio):
-    """
-    Calcula 7 dias ÚTEIS após a data de início (RF-014).
-    Ignora Sábados (5) e Domingos (6).
-    """
+    ''' 
+        Calcula 7 dias úteis após a data de início
+        Ignorando Sabados e Domingos
+        Retorna a data de devolução prevista 
+    '''
+
     dias_adicionados = 0
     data_atual = data_inicio
+    
     while dias_adicionados < 7:
         data_atual += timedelta(days=1)
-        # weekday(): 0=Segunda, 4=Sexta, 5=Sábado, 6=Domingo
-        if data_atual.weekday() < 5: 
+        
+        if data_atual.weekday() < 5: # 0-4 são dias úteis
             dias_adicionados += 1
+    
     return data_atual
 
-def _usuario_tem_pendencias(id_cliente, db_emprestimos):
-    """
-    Verifica se o usuário tem algum empréstimo 'Atrasado' (RF-015b).
-    """
-    for emp in db_emprestimos:
-        if (emp["ID_Cliente_Referencia"] == id_cliente and 
-            emp["Status"] == "Atrasado"):
-            return True
-    return False
+def verificar_e_atualizar_atrasos():
+    '''
+        Verifica se empréstimos em andamento estão atrasados
+        e atualiza seu status conforme necessário.
+    '''
 
-def _contar_emprestimos_ativos(id_cliente, db_emprestimos):
-    """
-    Conta quantos empréstimos ativos o usuário tem.
-    """
-    contador = 0
-    for emp in db_emprestimos:
-        if (emp["ID_Cliente_Referencia"] == id_cliente and 
-            emp["Status"] in ["Em andamento", "Atrasado"]):
-            contador += 1
-    return contador
-
-# --- Funções Principais (Expostas) ---
-
-def verificar_atrasos(db_emprestimos):
-    """
-    Atualiza automaticamente o status para 'Atrasado' se passou do prazo (RF-022).
-    Deve ser chamada sempre que o sistema inicia ou carrega dados.
-    """
     hoje = date.today()
-    atualizados = 0
-    
-    # Como estamos modificando a lista, vamos iterar e modificar in-place
-    for emp in db_emprestimos:
-        if emp["Status"] == "Em andamento":
-            if hoje > emp["DataDevolucaoPrevista"]:
-                emp["Status"] = "Atrasado"
-                atualizados += 1
-    
-    if atualizados > 0:
-        print(f"Backend: {atualizados} empréstimos marcados como Atrasados.")
-    
-    return db_emprestimos
+    alterado = False
 
-def criar_emprestimo(id_cliente, id_copia, db_emprestimos, db_copias, db_prox_id):
-    """
-    Registra um novo empréstimo (RF-013, RF-014, RF-015).
-    Retorna: (nova_lista_emp, nova_lista_copias, novo_id, sucesso, msg)
-    """
-    # 1. Validar Cópia
-    copia_alvo = None
-    for copia in db_copias:
+    for emp in _lst_emprestimos:
+        if emp["Status"] == "Em andamento":
+
+            # converte string ISO para date
+            data_prevista = date.fromisoformat(emp["DataDevolucaoPrevista"])
+
+            if hoje > data_prevista:
+                emp["Status"] = "Atrasado"
+                alterado = True
+
+    if alterado:
+        salvar_alteracoes()
+
+#__________________________________________________
+
+def criar_emprestimo(id_cliente, id_copia):
+    '''
+        Cria um novo empréstimo seguindo as regras de negócio:
+        - Máximo 10 empréstimos ativos
+        - Sem atrasos pendentes
+        - Cópia deve estar disponível
+    '''
+    global _prox_id_emprestimo
+    from src.sb import acervo # Importação local
+
+    # 1. Atualiza status de atrasos antes de verificar
+    verificar_e_atualizar_atrasos()
+
+    # 2. Verifica regras do Cliente
+    emprestimos_ativos = 0
+    possui_atraso = False
+
+    for emp in _lst_emprestimos:
+        if emp["ID_Cliente_Referencia"] == id_cliente:
+            if emp["Status"] in ["Em andamento", "Atrasado"]:
+                emprestimos_ativos += 1
+            if emp["Status"] == "Atrasado":
+                possui_atraso = True
+    
+    if emprestimos_ativos >= 10:
+        print(f"Erro: Cliente {id_cliente} atingiu o limite de 10 empréstimos.")
+        return None
+    
+    if possui_atraso:
+        print(f"Erro: Cliente {id_cliente} possui empréstimos atrasados.")
+        return None
+
+    # 3. Verifica e Obtém a Cópia do Acervo
+    copia_encontrada = None
+    for copia in acervo._lst_copias_livros:
         if copia["ID_Copia"] == id_copia:
-            copia_alvo = copia
+            copia_encontrada = copia
             break
     
-    if not copia_alvo:
-        return db_emprestimos, db_copias, db_prox_id, False, "Erro: Cópia não encontrada."
+    if not copia_encontrada:
+        print(f"Erro: Cópia {id_copia} não encontrada.")
+        return None
     
-    if copia_alvo["Status"] != "Disponível":
-        return db_emprestimos, db_copias, db_prox_id, False, f"Erro: Cópia {id_copia} não está disponível (Status: {copia_alvo['Status']})."
+    if copia_encontrada["Status"] != "Disponível":
+        print(f"Erro: Cópia {id_copia} não está disponível.")
+        return None
 
-    # 2. Validar Cliente (Regras de Negócio)
-    # RF-015a: Limite de 10 empréstimos
-    qtd_ativos = _contar_emprestimos_ativos(id_cliente, db_emprestimos)
-    if qtd_ativos >= 10:
-        return db_emprestimos, db_copias, db_prox_id, False, "Erro: Cliente atingiu o limite de 10 empréstimos ativos."
-
-    # RF-015b: Pendências/Atrasos
-    if _usuario_tem_pendencias(id_cliente, db_emprestimos):
-        return db_emprestimos, db_copias, db_prox_id, False, "Erro: Cliente possui empréstimos ATRASADOS. Regularize para pegar novos livros."
-
-    # 3. Criar o Empréstimo
+    # 4. Cria o Empréstimo
     data_hoje = date.today()
-    data_prevista = _calcular_data_devolucao(data_hoje) # RF-014
+    data_prevista = _calcular_data_devolucao(data_hoje)
 
     novo_emprestimo = {
-        "ID_Emprestimo": db_prox_id,
+        "ID_Emprestimo": _prox_id_emprestimo,
         "ID_Copia_Referencia": id_copia,
         "ID_Cliente_Referencia": id_cliente,
-        "DataInicio": data_hoje,
-        "DataDevolucaoPrevista": data_prevista,
+        "DataInicio": data_hoje.isoformat(),
+        "DataDevolucaoPrevista": data_prevista.isoformat(),
         "DataDevolucaoReal": None,
         "Status": "Em andamento"
     }
 
-    # 4. Atualizar Listas (Imutabilidade simulada: cria novas ou append)
-    db_emprestimos.append(novo_emprestimo)
-    
-    # Atualiza status da cópia
-    copia_alvo["Status"] = "Emprestado"
-    
-    msg = f"Sucesso: Empréstimo {db_prox_id} realizado. Devolução até {data_prevista.strftime('%d/%m/%Y')}."
-    print(f"Backend: {msg}")
-    
-    return db_emprestimos, db_copias, db_prox_id + 1, True, msg
+    _lst_emprestimos.append(novo_emprestimo)
+    _prox_id_emprestimo += 1
 
-def registrar_devolucao(id_copia, db_emprestimos, db_copias):
-    """
-    Finaliza um empréstimo baseado no ID da cópia (RF-016).
-    Retorna: (nova_lista_emp, nova_lista_copias, sucesso, msg)
-    """
-    # 1. Achar o empréstimo ativo para esta cópia
-    emprestimo_alvo = None
-    for emp in db_emprestimos:
+    # 5. Atualiza o Acervo (Cópia vira 'Emprestado')
+    copia_encontrada["Status"] = "Emprestado"
+    
+    # Persiste alteração no acervo
+    persistence.save("acervo", {
+        "_lst_livros": acervo._lst_livros,
+        "_lst_copias_livros": acervo._lst_copias_livros,
+        "_prox_id_livro": acervo._prox_id_livro,
+        "_prox_id_copia": acervo._prox_id_copia,
+    })
+
+    # Persiste alteração no empréstimo
+    salvar_alteracoes()
+
+    return novo_emprestimo
+
+
+def registrar_devolucao(id_copia):
+    '''
+        Registra a devolução de uma cópia, finalizando o empréstimo
+        e liberando a cópia no acervo.
+    '''
+    from src.sb import acervo
+
+    # 1. Encontrar o empréstimo ativo para esta cópia
+    emprestimo_ativo = None
+    for emp in _lst_emprestimos:
         if (emp["ID_Copia_Referencia"] == id_copia and 
             emp["Status"] in ["Em andamento", "Atrasado"]):
-            emprestimo_alvo = emp
+            emprestimo_ativo = emp
             break
-            
-    if not emprestimo_alvo:
-        return db_emprestimos, db_copias, False, "Erro: Não há empréstimo ativo para esta cópia."
+    
+    if not emprestimo_ativo:
+        print(f"Erro: Nenhum empréstimo ativo encontrado para a cópia {id_copia}.")
+        return None
 
-    # 2. Achar a cópia para liberar
-    copia_alvo = None
-    for copia in db_copias:
+    # 2. Atualizar o Empréstimo
+    emprestimo_ativo["Status"] = "Finalizado"
+    emprestimo_ativo["DataDevolucaoReal"] = date.today().isoformat()
+
+    # 3. Atualizar o Acervo (Liberar a cópia)
+    copia_encontrada = None
+    for copia in acervo._lst_copias_livros:
         if copia["ID_Copia"] == id_copia:
-            copia_alvo = copia
+            copia_encontrada = copia
             break
-
-    # 3. Finalizar
-    emprestimo_alvo["DataDevolucaoReal"] = date.today()
-    emprestimo_alvo["Status"] = "Finalizado"
     
-    if copia_alvo:
-        copia_alvo["Status"] = "Disponível"
+    if copia_encontrada:
+        copia_encontrada["Status"] = "Disponível"
+        # Persiste alteração no acervo
+        persistence.save("acervo", {
+            "_lst_livros": acervo._lst_livros,
+            "_lst_copias_livros": acervo._lst_copias_livros,
+            "_prox_id_livro": acervo._prox_id_livro,
+            "_prox_id_copia": acervo._prox_id_copia,
+        })
 
-    msg = f"Sucesso: Devolução registrada para Cópia {id_copia}."
-    print(f"Backend: {msg}")
-    return db_emprestimos, db_copias, True, msg
+    # Persiste alteração no empréstimo
+    salvar_alteracoes()
 
-def renovar_emprestimo(id_emprestimo, tipo_usuario_solicitante, db_emprestimos):
-    """
-    Renova o prazo por mais 7 dias úteis (RF-017).
-    Valida regras de atraso (RF-021, RF-026).
-    Retorna: (nova_lista_emp, sucesso, msg)
-    """
-    emp_alvo = None
-    for emp in db_emprestimos:
+    print(f"Devolução registrada com sucesso para cópia {id_copia}.")
+    return emprestimo_ativo
+
+def renovar_emprestimo(id_emprestimo, tipo_usuario):
+    '''
+        Renova um empréstimo por mais 7 dias úteis.
+        - Cliente não pode renovar se estiver atrasado.
+        - Funcionário pode renovar atrasado (multa implícita).
+    '''
+    from src.sb import multa
+
+    verificar_e_atualizar_atrasos()
+
+    emprestimo = None
+    for emp in _lst_emprestimos:
         if emp["ID_Emprestimo"] == id_emprestimo:
-            emp_alvo = emp
+            emprestimo = emp
             break
     
-    if not emp_alvo:
-        return db_emprestimos, False, "Empréstimo não encontrado."
+    if not emprestimo:
+        print(f"Erro: Empréstimo {id_emprestimo} não encontrado.")
+        return False
+
+    if emprestimo["Status"] == "Finalizado":
+        print("Erro: Empréstimo já finalizado.")
+        return False
+
+    # Regras de Atraso
+    if emprestimo["Status"] == "Atrasado":
+        if tipo_usuario == "Cliente":
+            print("Erro: Cliente não pode renovar item atrasado. Procure o balcão.")
+            return False
+            
+        elif tipo_usuario == "Funcionario":
+            multa_valor = multa.calcular_multa(emprestimo)
+            
+            # informa a multa 
+            print(f"Aviso: Empréstimo está atrasado. Multa aplicada: R$ {multa_valor:.2f}")
+
+            # pagamento da multa
+            pago = multa.registrar_pagamento_multa(emprestimo["ID_Cliente_Referencia"], multa)
+            if not pago:
+                return False    
+            
+        print("Multa paga. Prosseguindo com a renovação.")
+
+    # Calcula nova data
+    data_atual_prevista = date.fromisoformat(emprestimo["DataDevolucaoPrevista"])
+    nova_data = _calcular_data_devolucao(data_atual_prevista)
     
-    if emp_alvo["Status"] == "Finalizado":
-        return db_emprestimos, False, "Este empréstimo já foi finalizado."
-
-    # RF-021: Cliente não pode renovar se estiver atrasado
-    if tipo_usuario_solicitante == "Cliente" and emp_alvo["Status"] == "Atrasado":
-        return db_emprestimos, False, "Erro: Não é possível renovar via Portal do Cliente pois o item está atrasado. Procure um funcionário."
-
-    # RF-026: Funcionário renovando atrasado (implica pagamento de multa)
-    msg_extra = ""
-    if emp_alvo["Status"] == "Atrasado" and tipo_usuario_solicitante == "Funcionario":
-        msg_extra = " (Item estava atrasado. Multa deve ser cobrada)."
-        emp_alvo["Status"] = "Em andamento" # Reseta status ao renovar
-
-    # Aplica Renovação
-    nova_data = _calcular_data_devolucao(emp_alvo["DataDevolucaoPrevista"])
-    emp_alvo["DataDevolucaoPrevista"] = nova_data
+    emprestimo["DataDevolucaoPrevista"] = nova_data.isoformat()
     
-    msg = f"Sucesso: Renovado até {nova_data.strftime('%d/%m/%Y')}{msg_extra}."
-    return db_emprestimos, True, msg
+    salvar_alteracoes()
+    return True
 
-def get_todos_emprestimos():
-    return _lst_emprestimos
+def get_historico_cliente(id_cliente):
+    '''
+        Retorna todos os empréstimos de um cliente específico
+    '''
+    historico = []
+    for emp in _lst_emprestimos:
+        if emp["ID_Cliente_Referencia"] == id_cliente:
+            historico.append(emp)
+    return historico

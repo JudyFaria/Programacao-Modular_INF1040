@@ -46,7 +46,7 @@ def render_sidebar_nav_e_logout(api, todas_as_paginas):
         modulos_visiveis = ["Pesquisar Acervo", "Meus Empréstimos"]
     
     elif usuario['Tipo'] == "Funcionario":
-        modulos_visiveis = ["Pesquisar Acervo", "Gerenciar Acervo", "Gerenciar Usuários"]
+        modulos_visiveis = ["Pesquisar Acervo", "Gerenciar Acervo", "Gerenciar Usuários", "Gerenciar Empréstimos"]
     
     else:
         modulos_visiveis = ["Pesquisar Acervo"]

@@ -215,3 +215,9 @@ def get_todos_livros():
         Função auxiiar para o front end
     '''
     return _lst_livros
+
+def get_todas_copias():
+    '''
+        Função auxiiar para o front end
+    '''
+    return _lst_copias_livros

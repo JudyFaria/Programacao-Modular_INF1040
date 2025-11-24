@@ -1,6 +1,13 @@
+import sys, os
+
+# Get the absolute path to the project root (2 levels up from app/streamlit/app.py)
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '../..'))
+sys.path.append(project_root)
+
 import streamlit as st
-from src.sb.api import api_facade
 from ui_pages import page_cliente, page_funcionario, page_public, sidebar
+
+import src.sb.api.api_facade as api_facade
 
 @st.cache_resource #protege de ser reiniciado
 def get_api_facade():
@@ -36,8 +43,7 @@ def main():
         # Páginas de Funcionário
         "Gerenciar Acervo": page_funcionario.render_page_gerenciar_acervo,
         "Gerenciar Usuários": page_funcionario.render_page_gerenciar_usuarios,
-        # "Gerenciar Empréstimos": page_funcionario.render_page_gerenciar_emprestimos, (futuro)
-        # "Relatórios": page_funcionario.render_page_relatorios, (futuro)
+        "Gerenciar Empréstimos": page_funcionario.render_page_gerenciar_emprestimos
     }
     
     # Sidebar
