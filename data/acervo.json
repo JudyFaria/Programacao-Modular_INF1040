@@ -43,68 +43,8 @@
       "ID_Livro_Referencia": 2,
       "LocalizacaoFisica": "Corredor 1-B",
       "Status": "Disponível"
-    },
-    {
-      "ID_Copia": 6,
-      "ID_Livro_Referencia": 1,
-      "LocalizacaoFisica": "Corredor 1-A",
-      "Status": "Disponível"
-    },
-    {
-      "ID_Copia": 7,
-      "ID_Livro_Referencia": 1,
-      "LocalizacaoFisica": "Corredor 1-A",
-      "Status": "Disponível"
-    },
-    {
-      "ID_Copia": 8,
-      "ID_Livro_Referencia": 1,
-      "LocalizacaoFisica": "Corredor 1-A",
-      "Status": "Disponível"
-    },
-    {
-      "ID_Copia": 9,
-      "ID_Livro_Referencia": 2,
-      "LocalizacaoFisica": "Corredor 1-B",
-      "Status": "Disponível"
-    },
-    {
-      "ID_Copia": 10,
-      "ID_Livro_Referencia": 2,
-      "LocalizacaoFisica": "Corredor 1-B",
-      "Status": "Disponível"
-    },
-    {
-      "ID_Copia": 11,
-      "ID_Livro_Referencia": 1,
-      "LocalizacaoFisica": "Corredor 1-A",
-      "Status": "Disponível"
-    },
-    {
-      "ID_Copia": 12,
-      "ID_Livro_Referencia": 1,
-      "LocalizacaoFisica": "Corredor 1-A",
-      "Status": "Disponível"
-    },
-    {
-      "ID_Copia": 13,
-      "ID_Livro_Referencia": 1,
-      "LocalizacaoFisica": "Corredor 1-A",
-      "Status": "Disponível"
-    },
-    {
-      "ID_Copia": 14,
-      "ID_Livro_Referencia": 2,
-      "LocalizacaoFisica": "Corredor 1-B",
-      "Status": "Disponível"
-    },
-    {
-      "ID_Copia": 15,
-      "ID_Livro_Referencia": 2,
-      "LocalizacaoFisica": "Corredor 1-B",
-      "Status": "Disponível"
     }
   ],
   "_prox_id_livro": 3,
-  "_prox_id_copia": 16
+  "_prox_id_copia": 6
 }

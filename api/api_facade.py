@@ -42,19 +42,6 @@ def inicializar_sistema():
     if not cliente_existe:
         gu.cadastrar_cliente("Ana Silva", cpf_exemplo, "Rua A", "9999", "ana123")
 
-    # --- 3. POPULA FUNCIONÁRIOS (Verifica duplicidade por Usuário) ---
-    funcionarios = gu.get_todos_funcionarios()
-    user_exemplo = "func_comum"
-    
-    func_existe = False
-    for f in funcionarios:
-        if f.get('NomeUsuario') == user_exemplo:
-            func_existe = True
-            break
-    
-    if not func_existe:
-        gu.cadastrar_funcionario(user_exemplo, "123", "Comum")
-
     # Verifica atrasos
     ge.verificar_e_atualizar_atrasos()
 

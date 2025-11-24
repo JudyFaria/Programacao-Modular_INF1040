@@ -1,6 +1,11 @@
 {
   "_lst_funcionarios": [
-    
+    {
+      "ID_Funcionario": 1,
+      "NomeUsuario": "admin",
+      "SenhaHash": "240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9",
+      "Papel": "Administrador"
+    }
   ],
   "_lst_clientes": [
     {
@@ -12,6 +17,6 @@
       "SenhaHash": "e82827b00b2ca8620beb37f879778c082b292a52270390cff35b6fe3157f4e8b"
     }
   ],
-  "_prox_id_funcionario": 5,
+  "_prox_id_funcionario": 3,
   "_prox_id_cliente": 2
 }
