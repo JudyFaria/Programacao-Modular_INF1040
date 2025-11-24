@@ -115,7 +115,7 @@ def inicializar_admin_padrao():
         # cadastrar_funcionario already persists the change
 
 
-def excluir_cliente(cpf):
+def excluir_cliente(cpf, lista_emprestimos=None):
 
     '''
         Busca o cliente pelo Id e remove da lista
@@ -139,9 +139,15 @@ def excluir_cliente(cpf):
     id_cliente = cliente_encontrado["ID_Cliente"]
     tem_pendencias = False
 
-    for emprestimo in ge._lst_emprestimos:
-        if (emprestimo.get("ID_Cliente_Referencia") == id_cliente
-            and emprestimo.get("Status") != "Finalizado"
+    # se o chamador passou uma lista (injeção), use-a; senão peça ao módulo de emprestimo
+    if lista_emprestimos is not None:
+        emprestimos_a_consultar = lista_emprestimos
+    else:
+        emprestimos_a_consultar = ge.get_todos_emprestimos() if hasattr(ge, 'get_todos_emprestimos') else getattr(ge, '_lst_emprestimos', [])
+
+    for em in emprestimos_a_consultar:
+        if (em.get("ID_Cliente_Referencia") == id_cliente
+            and em.get("Status") != "Finalizado"
         ):
             tem_pendencias = True
             break

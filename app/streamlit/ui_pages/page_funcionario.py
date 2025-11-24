@@ -1,4 +1,5 @@
 import streamlit as st
+import pandas as pd
 
 def render_page_gerenciar_acervo(api):
     '''
@@ -19,12 +20,14 @@ def render_page_gerenciar_acervo(api):
             localizacao = st.text_input("Localização")
             
             if st.form_submit_button("Cadastrar Título e Cópias"):
-                livro, status_livro = api.cadastrar_livro(titulo, autor, edicao) # Chama a API
-                if "Erro" in status_livro:
-                    st.error(f"Erro ao cadastrar livro: {status_livro}")
+                
+                livro = api.cadastrar_livro(titulo, autor, edicao) # Chama a API
+                
+                if not livro:
+                    st.error(f"Erro ao cadastrar livro '{titulo}'.")
                 else:
-                    status_copia = api.add_copias(livro["ID_Livro"], quantidade, localizacao) # Chama a API
-                    if status_copia == "sucesso":
+                    copia = api.add_copias(livro["ID_Livro"], quantidade, localizacao) # Chama a API
+                    if copia:
                         st.success(f"Livro '{livro['Titulo']}' e {quantidade} cópia(s) cadastrados!")
                     else:
                         st.error("Erro ao adicionar cópias.")
@@ -57,16 +60,17 @@ def render_page_gerenciar_acervo(api):
         else:
             opcoes_excluir = {f"ID {l['ID_Livro']}: {l['Titulo']}": l['ID_Livro'] for l in livros}
             selecionado_excluir = st.selectbox("Selecione o livro a excluir", ["Selecione..."] + list(opcoes_excluir.keys()))
+            
             if selecionado_excluir != "Selecione...":
                 id_excluir = opcoes_excluir[selecionado_excluir]
+                
                 if st.button(f"Confirmar Exclusão de '{selecionado_excluir}'", type="primary"):
-                    sucesso, msg = api.excluir_livro(id_excluir) # Chama a API
-                    if sucesso: 
-                        st.success(msg)
+                    exclusao = api.excluir_livro(id_excluir) # Chama a API
+                    if exclusao: 
+                        st.success("Livro excluído com sucesso.")
                         st.rerun() # Atualiza a UI para remover o livro da lista
                     else: 
-                        st.error(msg)
-
+                        st.error("Erro ao excluir livro.")
 
 def render_page_gerenciar_usuarios(api):
     '''
@@ -120,3 +124,94 @@ def render_page_gerenciar_usuarios(api):
                     msg = api.cadastrar_funcionario(nome, senha, papel) # Chama a API
                     if "Sucesso" in msg: st.success(msg)
                     else: st.error(msg)
+
+
+def render_page_gerenciar_emprestimos(api):
+    '''
+    Página do Balcão de Atendimento (Realizar Empréstimo e Devolução)
+    '''
+    st.title("🛎️ Balcão de Empréstimos")
+    
+    tab_emp, tab_dev = st.tabs(["📤 Realizar Empréstimo", "📥 Registrar Devolução"])
+
+    # --- ABA 1: REALIZAR EMPRÉSTIMO ---
+    with tab_emp:
+        col1, col2 = st.columns([1, 1])
+
+        with col1:
+            st.subheader("Nova Operação")
+            
+            # Passo 1: Validar Cliente (Busca por CPF)
+            cpf_input = st.text_input("CPF do Cliente", placeholder="Apenas números", key="cpf_emp_input")
+            cliente_valido = None
+            
+            if cpf_input:
+                # Aqui estava o erro: usamos a busca por CPF, não o histórico
+                cliente_valido = api.buscar_cliente_por_cpf(cpf_input)
+                
+                if cliente_valido:
+                    st.success(f"Cliente Identificado: **{cliente_valido['Nome']}**")
+                else:
+                    st.error("Cliente não encontrado.")
+
+            st.divider()
+
+            # Passo 2: Validar Cópia (Busca por ID)
+            id_copia = st.number_input("ID da Cópia (Código de Barras)", min_value=0, step=1, key="id_copia_emp")
+            copia_valida = None
+            
+            if id_copia > 0:
+                copia_valida = api.get_copia_por_id(id_copia)
+                if copia_valida:
+                    status = copia_valida['Status']
+                    titulo = copia_valida.get('Titulo_Livro', 'Desconhecido')
+                    
+                    if status == "Disponível":
+                        st.info(f"📖 Livro: **{titulo}**\n\n✅ Status: Disponível")
+                    else:
+                        st.warning(f"📖 Livro: **{titulo}**\n\n⚠️ Status: {status}")
+                else:
+                    st.caption("Cópia não encontrada no acervo.")
+
+            st.divider()
+
+            # Passo 3: Botão de Ação
+            # Habilita apenas se Cliente OK + Cópia OK + Status Disponível
+            pode_emprestar = (cliente_valido is not None) and (copia_valida is not None) and (copia_valida['Status'] == 'Disponível')
+            
+            if st.button("Confirmar Empréstimo", type="primary", disabled=not pode_emprestar):
+                sucesso, msg = api.criar_emprestimo(cliente_valido['ID_Cliente'], id_copia)
+                if sucesso:
+                    st.balloons()
+                    st.success(msg)
+                else:
+                    st.error(msg)
+
+        # Coluna da Direita: Tabela de apoio
+        with col2:
+            st.caption("Itens disponíveis no Acervo:")
+            lista_disp = api.get_copias_disponiveis_simples()
+            if lista_disp:
+                # Usa DataFrame para visualização tabular bonita
+                df = pd.DataFrame(lista_disp)
+                st.dataframe(df, hide_index=True, height=400)
+            else:
+                st.info("Nenhum item disponível no momento.")
+
+    # --- ABA 2: REGISTRAR DEVOLUÇÃO ---
+    with tab_dev:
+        st.subheader("Recebimento de Material")
+        col_d1, col_d2 = st.columns(2)
+        
+        with col_d1:
+            id_dev = st.number_input("ID da Cópia Devolvida", min_value=0, step=1, key="id_copia_dev")
+            
+            if st.button("Confirmar Devolução", type="secondary"):
+                if id_dev > 0:
+                    sucesso, msg = api.registrar_devolucao(id_dev)
+                    if sucesso:
+                        st.success(msg)
+                    else:
+                        st.error(msg)
+                else:
+                    st.warning("Insira um ID válido.")
