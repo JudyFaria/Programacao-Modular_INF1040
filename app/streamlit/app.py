@@ -7,7 +7,7 @@ sys.path.append(project_root)
 import streamlit as st
 from ui_pages import page_cliente, page_funcionario, page_public, sidebar
 
-import src.sb.api.api_facade as api_facade
+import api.api_facade as api_facade
 
 @st.cache_resource #protege de ser reiniciado
 def get_api_facade():

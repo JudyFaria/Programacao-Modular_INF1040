@@ -7,111 +7,9 @@
       "Papel": "Administrador"
     },
     {
-      "ID_Funcionario": 2,
-      "NomeUsuario": "func_comum",
-      "SenhaHash": "a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3",
-      "Papel": "Comum"
-    },
-    {
       "ID_Funcionario": 3,
-      "NomeUsuario": "func_comum",
+      "NomeUsuario": "judy",
       "SenhaHash": "a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3",
-      "Papel": "Comum"
-    },
-    {
-      "ID_Funcionario": 4,
-      "NomeUsuario": "func_comum",
-      "SenhaHash": "a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3",
-      "Papel": "Comum"
-    },
-    {
-      "ID_Funcionario": 5,
-      "NomeUsuario": "func_comum",
-      "SenhaHash": "a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3",
-      "Papel": "Comum"
-    },
-    {
-      "ID_Funcionario": 6,
-      "NomeUsuario": "func_comum",
-      "SenhaHash": "a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3",
-      "Papel": "Comum"
-    },
-    {
-      "ID_Funcionario": 7,
-      "NomeUsuario": "func_comum",
-      "SenhaHash": "a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3",
-      "Papel": "Comum"
-    },
-    {
-      "ID_Funcionario": 8,
-      "NomeUsuario": "func_comum",
-      "SenhaHash": "a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3",
-      "Papel": "Comum"
-    },
-    {
-      "ID_Funcionario": 9,
-      "NomeUsuario": "func_comum",
-      "SenhaHash": "a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3",
-      "Papel": "Comum"
-    },
-    {
-      "ID_Funcionario": 10,
-      "NomeUsuario": "func_comum",
-      "SenhaHash": "a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3",
-      "Papel": "Comum"
-    },
-    {
-      "ID_Funcionario": 11,
-      "NomeUsuario": "func_comum",
-      "SenhaHash": "a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3",
-      "Papel": "Comum"
-    },
-    {
-      "ID_Funcionario": 12,
-      "NomeUsuario": "func_comum",
-      "SenhaHash": "a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3",
-      "Papel": "Comum"
-    },
-    {
-      "ID_Funcionario": 13,
-      "NomeUsuario": "func_comum",
-      "SenhaHash": "a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3",
-      "Papel": "Comum"
-    },
-    {
-      "ID_Funcionario": 14,
-      "NomeUsuario": "func_comum",
-      "SenhaHash": "a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3",
-      "Papel": "Comum"
-    },
-    {
-      "ID_Funcionario": 15,
-      "NomeUsuario": "func_comum",
-      "SenhaHash": "a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3",
-      "Papel": "Comum"
-    },
-    {
-      "ID_Funcionario": 16,
-      "NomeUsuario": "func_comum",
-      "SenhaHash": "a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3",
-      "Papel": "Comum"
-    },
-    {
-      "ID_Funcionario": 17,
-      "NomeUsuario": "func_comum",
-      "SenhaHash": "a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3",
-      "Papel": "Comum"
-    },
-    {
-      "ID_Funcionario": 18,
-      "NomeUsuario": "func_comum",
-      "SenhaHash": "a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3",
-      "Papel": "Comum"
-    },
-    {
-      "ID_Funcionario": 19,
-      "NomeUsuario": "Judy",
-      "SenhaHash": "8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92",
       "Papel": "Comum"
     }
   ],
@@ -119,12 +17,12 @@
     {
       "ID_Cliente": 2,
       "Nome": "judy",
-      "CPF": "17468606773",
-      "Endereco": "rua a",
-      "Telefone": "(21) 99253-0089",
-      "SenhaHash": "8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92"
+      "CPF": "123",
+      "Endereco": "test",
+      "Telefone": "21992530089",
+      "SenhaHash": "a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3"
     }
   ],
-  "_prox_id_funcionario": 20,
+  "_prox_id_funcionario": 4,
   "_prox_id_cliente": 3
 }

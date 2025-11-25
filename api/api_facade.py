@@ -6,22 +6,44 @@ import src.sb.multa as multa
 
 def inicializar_sistema():
     '''
-        Função chamada uma única vez para popular o backend
+        Função chamada uma única vez para popular o backend.
+        IDEMPOTENTE: não duplica dados se rodar múltiplas vezes.
     '''
-
     gu.inicializar_admin_padrao()
+    
+    # POPULA ACERVO (Apenas se não houver livros)  
+    livros_existentes = acervo.get_todos_livros()
+    
+    if not livros_existentes:
+        print("Inicializando Acervo com dados de exemplo...")
+        
+        # Livro 1
+        l1 = acervo.cadastrar_livro("O Senhor dos Anéis", "J.R.R. Tolkien", "HarperCollins")
+        
+        # Se cadastrou agora (retornou dict), adiciona cópias
+        if l1: 
+            acervo.add_copias(l1["ID_Livro"], 3, "Corredor 1-A")
+        
+        # Livro 2
+        l2 = acervo.cadastrar_livro("Duna", "Frank Herbert", "Editora Aleph")
+        if l2:
+            acervo.add_copias(l2["ID_Livro"], 2, "Corredor 1-B")
 
-    # Dados de exemplo
-    livro_1 = acervo.cadastrar_livro("O Senhor dos Anéis", "J.R.R. Tolkien", "HarperCollins")
-    acervo.add_copias(livro_1["ID_Livro"], 3, "Corredor 1-A")
+    # POPULA CLIENTES (Verifica duplicidade por CPF) 
+    clientes = gu.get_todos_clientes()
+    cpf_exemplo = "111"
     
-    livro_2 = acervo.cadastrar_livro("Duna", "Frank Herbert", "Editora Aleph")
-    acervo.add_copias(livro_2["ID_Livro"], 2, "Corredor 1-B")
+    # Verifica se já existe algum cliente com esse CPF na lista
+    cliente_existe = False
+    for c in clientes:
+        if str(c.get('CPF')).strip() == cpf_exemplo:
+            cliente_existe = True
+            break
     
-    cliente_1 = gu.cadastrar_cliente("Ana Silva", "111", "Rua A", "9999", "ana123")
-    gu.cadastrar_funcionario("func_comum", "123", "Comum")
-    
-    # Verifica se algo venceu hoje
+    if not cliente_existe:
+        gu.cadastrar_cliente("Ana Silva", cpf_exemplo, "Rua A", "9999", "ana123")
+
+    # Verifica atrasos
     ge.verificar_e_atualizar_atrasos()
 
 # Wrappers - Gestão de Usuário
@@ -29,7 +51,7 @@ def autenticar_usuario(usuario, senha):
     return gu.autenticar(usuario, senha)
 
 def cadastrar_cliente(nome, cpf, endereco, tel, senha):
-    res = gu.cadastrar_cliente(nome, cpf, end, tel, senha)
+    res = gu.cadastrar_cliente(nome, cpf, endereco, tel, senha)
     if res: return f"Sucesso! Cliente {res['Nome']} cadastrado."
     return "Erro: CPF já existe."
 
@@ -42,6 +64,12 @@ def cadastrar_funcionario(nome, senha, papel):
     res = gu.cadastrar_funcionario(nome, senha, papel)
     if res: return f"Sucesso! {res['NomeUsuario']} cadastrado."
     return "Erro ao cadastrar."
+
+def get_todos_clientes():
+    return gu.get_todos_clientes()
+
+def get_todos_funcionarios():
+    return gu.get_todos_funcionarios()
 
 # Wrappers - Acervo
 def buscar_livro(termo):
@@ -77,7 +105,7 @@ def criar_emprestimo(id_cliente, id_copia):
 def registrar_devolucao(id_copia):
     res = ge.registrar_devolucao(id_copia)
     if res: return True, "Devolução realizada."
-    return False, "Erro: Nenhum empréstimo ativo para esta cópia."
+    return False, "Erro: Nenhum empréstimo ativo para este exemplar."
 
 
 def renovar_emprestimo(id_emprestimo, tipo_usuario):
