@@ -23,13 +23,22 @@ _lst_copias_livros = _loaded_state.get("_lst_copias_livros", [])
 _prox_id_livro = _loaded_state.get("_prox_id_livro", 1)
 _prox_id_copia = _loaded_state.get("_prox_id_copia", 1)
 
-def cadastrar_livro(titulo, autor, edicao):
+def cadastrar_livro(titulo: str, autor: str, edicao: str) -> dict:
+    """
+    Verifica se um LIVRO (título/autor/edição) já existe.
+        Se não existir, cadastra em `_lst_livros`.
 
-    '''
-        Verifica se um LIVRO (título/autor/edição) já existe.
-        Se não existir, cadastra na _lst_livros.
-        Retorna o dicionário do livro (novo ou o que já existia).
-    '''
+    Parâmetros:
+        titulo (str): Título do livro.
+        autor  (str): Nome do autor.
+        edicao (str): Informação da edição (ex.: "1ª edição", "2ª ed.").
+
+    Retorno:
+        dict:
+            Dicionário do livro correspondente:
+                - Se já existir, retorna o livro existente.
+                - Caso contrário, retorna o novo livro cadastrado.
+    """
 
     global _prox_id_livro, _lst_livros
     livro_existente = None
@@ -68,11 +77,23 @@ def cadastrar_livro(titulo, autor, edicao):
         return novo_livro
 
 
-def add_copias(id_livro_ref, qtd_copias, localiazacao):
-    
-    '''
-        Adiciona cópia de um livro existente na lista de livros
-    '''
+def add_copias(id_livro_ref: int, qtd_copias: int, localizacao: str) -> list[dict] | None:
+    """
+    Adiciona uma ou mais cópias de um livro já existente na lista de livros.
+
+    Parâmetros:
+        id_livro_ref (int):
+            ID do livro ao qual as cópias estarão vinculadas.
+        qtd_copias (int):
+            Quantidade de cópias a serem criadas.
+        localizacao (str):
+            Localização física das cópias (ex.: "Estante A, Prateleira 3").
+
+    Retorno:
+        list[dict] | None:
+            - Lista de dicionários das cópias criadas, em caso de sucesso.
+            - None, se o livro de referência não existir.
+    """
 
     global _prox_id_copia, _lst_copias_livros
 
@@ -86,7 +107,7 @@ def add_copias(id_livro_ref, qtd_copias, localiazacao):
             break
 
     if not livro_existe:
-        print(f"Erro: Não é possível adicionar cópia. O Livro com id {id_livro_ref} não existe.")
+        print(f"Erro: Não é possível adicionar cópia. O Livro com id {id_livro_ref} não está cadastrado no sistema.")
         return None
         
 
@@ -95,7 +116,7 @@ def add_copias(id_livro_ref, qtd_copias, localiazacao):
         nova_copia = {
             "ID_Copia": _prox_id_copia,
             "ID_Livro_Referencia": id_livro_ref,
-            "LocalizacaoFisica": localiazacao,
+            "LocalizacaoFisica": localizacao,
             "Status": "Disponível" 
         }
 
@@ -115,12 +136,29 @@ def add_copias(id_livro_ref, qtd_copias, localiazacao):
 
 
 
-def buscar_livro(termo_busca):
+def buscar_livro(termo_busca: str) -> list[dict]:
+    """
+    Busca livros por Título, Autor ou Edição.
 
-    '''
-        Busca o livro por Título, Autor ou Edição (editora)
-        Retorna uma lista das cópias do livro pesquisado e suas respectivas disponibilidades
-    '''
+    A busca é feita de forma case-insensitive, verificando se o termo
+    aparece em qualquer um dos campos.
+
+    Parâmetros:
+        termo_busca (str):
+            Palavra ou trecho a ser buscado em:
+                - Titulo
+                - Autor
+                - Edicao
+
+    Retorno:
+        list[dict]:
+            Lista de dicionários, onde cada elemento possui a forma:
+                {
+                    "Livro": <dict com dados do livro>,
+                    "Copias": <lista de cópias (dicts) daquele livro>
+                }
+            Se nenhum livro for encontrado, retorna lista vazia.
+    """
     resultado_busca = []
 
     # encontrar os ids dos livros
@@ -149,12 +187,23 @@ def buscar_livro(termo_busca):
     return resultado_busca
 
 
-def excluir_livro_e_copias(id_livro):
+def excluir_livro_e_copias(id_livro: int) -> bool:
+    """
+    Remove um título e todas as suas cópias.
 
-    '''
-        Remove um título e todas as suas cópias
-        Se, e somente se, não houver cópias em empréstimo
-    '''
+    Regra:
+        - Só permite a exclusão se nenhuma cópia do livro estiver
+            emprestada (Status "Emprestado" ou empréstimo não finalizado).
+
+    Parâmetros:
+        id_livro (int):
+            ID do livro a ser excluído.
+
+    Retorno:
+        bool:
+            - True se o livro e suas cópias forem excluídos com sucesso.
+            - False se houver cópias emprestadas ou se o ID for inexistente.
+    """
     global _lst_copias_livros, _lst_livros
     copia_emprestada = None
     
@@ -211,13 +260,21 @@ def excluir_livro_e_copias(id_livro):
     return True
 
 def get_todos_livros():
-    '''
-        Função auxiiar para o front end
-    '''
+    """
+    Função auxiliar para o front-end.
+
+    Retorna:
+        list[dict]:
+            Lista com todos os livros cadastrados no acervo.
+    """
     return _lst_livros
 
 def get_todas_copias():
-    '''
-        Função auxiiar para o front end
-    '''
+    """
+    Função auxiliar para o front-end.
+
+    Retorna:
+        list[dict]:
+            Lista com todas as cópias cadastradas no acervo.
+    """
     return _lst_copias_livros

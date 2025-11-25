@@ -19,9 +19,6 @@ import hashlib
 from src.sb import emprestimo as ge
 from src.sb import persistence
 
-'''
-    Em python, sem classe, nãoconsigo fazer uma "struct". Então vou usar um dicionário para agrupar 
-'''
 
 _loaded_state = persistence.load("gestao_usuarios", {})
 
@@ -32,19 +29,32 @@ _prox_id_funcionario = _loaded_state.get("_prox_id_funcionario", 1)
 _prox_id_cliente = _loaded_state.get("_prox_id_cliente", 1) #contador para gerar os ids automaticamente
 
 
-def _gerar_hash_senha(senha):
-    '''
-        Função auxiliar para gerar um hash SHA256 estável
-    '''
+def _gerar_hash_senha(senha: str) -> str:
+    """
+    Gera o hash SHA-256 de uma senha em texto plano.
+
+    Parâmetros: 
+        senha (str): Senha em texto plano fornecida pelo usuário.
+
+    Retorna:
+        str: Representação em hexadecimal do hash SHA-256 da senha.
+    """
 
     return hashlib.sha256(senha.encode('utf-8')).hexdigest()
 
 
-def cadastrar_funcionario(nome, senha, papel):
-    
-    '''
-        Cria um novo funcionário, adicionando-o a lista e retornando o dicionário
-    '''
+def cadastrar_funcionario(nome: str, senha: str, papel: str) -> dict:
+    """
+    Cadastra um novo funcionário no sistema.
+
+    Parâmetros: 
+        nome (str): Nome de usuário (login) do funcionário. Deve ser único.
+        senha (str): Senha em texto plano (será armazenada como hash).
+        papel (str): Papel do funcionário, por exemplo: "Administrador".
+
+    Retorna:
+        dict: Dicionário contendo os dados do funcionário cadastrado.
+    """
 
     global _prox_id_funcionario, _lst_funcionarios # utilizando variável global
 
@@ -69,11 +79,22 @@ def cadastrar_funcionario(nome, senha, papel):
 
     return novo_func
 
-def cadastrar_cliente(nome, cpf, endereco, tel, senha):
-    
-    '''
-        Cria um novo cliente, adicionando-o a lista e retornando o dicionário
-    '''
+def cadastrar_cliente(nome: str, cpf: str, endereco: str, tel: str, senha: str) -> dict | None:
+    """
+    Cadastra um novo cliente no sistema.
+
+    Parâmetros:
+        nome (str): Nome completo do cliente.
+        cpf (str): CPF do cliente (deve ser único).
+        endereco (str): Endereço residencial.
+        tel (str): Telefone de contato.
+        senha (str): Senha em texto plano (será convertida em hash).
+
+    Retorna:
+        dict: Dicionário com os dados do cliente cadastrado, em caso de sucesso.
+        None: Se já existir um cliente com o mesmo CPF.
+    """
+
     global _prox_id_cliente, _lst_clientes
 
     for cliente in _lst_clientes:
@@ -104,24 +125,37 @@ def cadastrar_cliente(nome, cpf, endereco, tel, senha):
     return novo_cliente
 
 
-def inicializar_admin_padrao():
-    '''
-        Verifica se a lista de funcionários está vazia
-        Se estiver, cria o administrador padrão 
-    '''
+def inicializar_admin_padrao() -> None:
+    """
+        Cria um usuário administrador padrão, caso ainda não existam funcionários.
+
+         Usuário criado (se necessário):
+        - Nome de usuário: "admin"
+        - Senha: "admin123"
+        - Papel: "Administrador"
+    """
 
     if len(_lst_funcionarios) == 0:
         cadastrar_funcionario("admin", "admin123", "Administrador")
         # cadastrar_funcionario already persists the change
 
 
-def excluir_cliente(cpf, lista_emprestimos=None):
+def excluir_cliente(cpf: str, lista_emprestimos: list | None = None) -> bool:
 
-    '''
-        Busca o cliente pelo Id e remove da lista
-        Verificando antes se o cliente possui empréstimos pendentes
-        Retorna True se foi excluído, False se não foi encontrado ou se tem pendências
-    '''
+    """
+    Exclui um cliente do sistema, se não houver emprestimos pendentes.
+
+    Parâmetros:
+        cpf (str): CPF do cliente a ser excluído.
+        lista_emprestimos (list | None): Lista de empréstimos para verificar
+            pendências. Se None, será buscada no módulo de empréstimo.
+        
+    Retorna:
+        bool: 
+            - True se o cliente foi excluído com sucesso.
+            - False em caso de erro, cliente inexistente ou pendências.
+    """
+
     cliente_encontrado = None
 
     # acha o cliente na lista
@@ -169,13 +203,37 @@ def excluir_cliente(cpf, lista_emprestimos=None):
     return True
 
 
-def autenticar(usuario, senha):
-    '''
-        Verifica as credencias nas listas de funcionarios e clientes
-        Para funcionários, 'usuario' é o 'NomeUsuario'
-        Para cliente, o'usuario' é o 'CPF'
-        Retorna um dicionário com os dados do usuário ou None se falhar
-    '''
+def autenticar(usuario: str, senha: str) -> dict | None:
+    """
+    Autentica um usuário (funcionário ou cliente) pelo nome de usuário/CPF e senha.
+
+    Parâmetros:
+        usuario (str): Nome de usuário (funcionário) ou CPF (cliente).
+        senha (str): Senha em texto plano.
+
+    Retorna:
+        dict:
+            Para funcionário:
+                {
+                    "Tipo": "Funcionario",
+                    "ID": int,
+                    "Papel": str,
+                    "Token": str,
+                    "Nome": str
+                }
+
+            Para cliente:
+                {
+                    "Tipo": "Cliente",
+                    "ID": int,
+                    "Token": str,
+                    "Nome": str
+                }
+
+        None:
+            Se a autenticação falhar (usuário não encontrado ou senha inválida).
+"""
+
     # gera hash da senha fornecida para comparação
     senha_hash_comp = _gerar_hash_senha(senha)
 
@@ -210,8 +268,20 @@ def autenticar(usuario, senha):
     return None
 
 # funções auxiliares para frontend
-def get_todos_clientes():
+def get_todos_clientes() -> list[dict]:
+    """
+    Obtém todos os clientes cadastrados.
+
+    Retorna:
+        list[dict]: Lista com todos os dicionários de clientes.
+    """
     return _lst_clientes
 
-def get_todos_funcionarios():
+def get_todos_funcionarios() -> list[dict]:
+    """
+    Obtém todos os funcionários cadastrados.
+
+    Retorna:
+        list[dict]: Lista com todos os dicionários de funcionários.
+    """
     return _lst_funcionarios

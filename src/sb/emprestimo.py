@@ -17,22 +17,31 @@ _prox_id_emprestimo = _loaded_state.get("_prox_id_emprestimo", 1)
 
 
 # funções auxiliares
+def salvar_alteracoes() -> None:
+    """
+    Persiste o estado atual dos empréstimos no armazenamento.
 
-def salvar_alteracoes():
-    '''
-        Salva o estado atual no arquivo de persistência
-    '''
+    Salva:
+        - Lista completa de empréstimos (`_lst_emprestimos`)
+        - Próximo ID de empréstimo (`_prox_id_emprestimo`)
+
+    Não recebe parâmetros e não retorna valor.
+    """
     persistence.save("emprestimo", {
         "_lst_emprestimos": _lst_emprestimos,
         "_prox_id_emprestimo": _prox_id_emprestimo
     })
 
-def _calcular_data_devolucao(data_inicio):
-    ''' 
-        Calcula 7 dias úteis após a data de início
-        Ignorando Sabados e Domingos
-        Retorna a data de devolução prevista 
-    '''
+def _calcular_data_devolucao(data_inicio: date) -> date:
+    """
+    Calcula a data de devolução para 7 dias úteis após a data de início.
+
+    Parâmetros:
+        data_inicio (date): Data de início do empréstimo.
+
+    Retorna:
+        date: Data correspondente a 7 dias úteis após `data_inicio`.
+    """
 
     dias_adicionados = 0
     data_atual = data_inicio
@@ -45,11 +54,20 @@ def _calcular_data_devolucao(data_inicio):
     
     return data_atual
 
-def verificar_e_atualizar_atrasos():
-    '''
-        Verifica se empréstimos em andamento estão atrasados
-        e atualiza seu status conforme necessário.
-    '''
+def verificar_e_atualizar_atrasos() -> None:
+    """
+    Verifica todos os empréstimos em andamento e marca como atrasados
+    aqueles cuja data de devolução prevista já passou.
+
+    Regras:
+        - Apenas empréstimos com Status == "Em andamento" são verificados.
+        - Se a data de hoje (`date.today()`) for maior que
+          `DataDevolucaoPrevista`, o status é alterado para "Atrasado".
+        - Caso ao menos um empréstimo seja alterado, `salvar_alteracoes()`
+          é chamada para persistir as mudanças.
+
+    Não recebe parâmetros e não retorna valor.
+    """
 
     hoje = date.today()
     alterado = False
@@ -69,13 +87,31 @@ def verificar_e_atualizar_atrasos():
 
 #__________________________________________________
 
-def criar_emprestimo(id_cliente, id_copia):
-    '''
-        Cria um novo empréstimo seguindo as regras de negócio:
-        - Máximo 10 empréstimos ativos
-        - Sem atrasos pendentes
-        - Cópia deve estar disponível
-    '''
+def criar_emprestimo(id_cliente: int, id_copia: int) -> dict | None:
+    """
+    Cria um novo empréstimo de uma cópia de livro para um cliente.
+
+    Regras de negócio:
+        - O cliente pode ter no máximo 10 empréstimos ativos
+          (Status "Em andamento" ou "Atrasado").
+        - O cliente não pode ter empréstimos atrasados para conseguir
+          um novo empréstimo.
+        - A cópia do livro deve existir e estar com Status "Disponível".
+        - Ao criar o empréstimo:
+            * DataInicio = data de hoje (ISO)
+            * DataDevolucaoPrevista = 7 dias úteis depois de hoje
+            * DataDevolucaoReal = None
+            * Status = "Em andamento"
+        - A cópia é marcada como "Emprestado" no acervo.
+
+    Parâmetros:
+        id_cliente (int): ID do cliente que está realizando o empréstimo.
+        id_copia (int): ID da cópia do livro a ser emprestada.
+
+    Retorna:
+        dict: Dicionário contendo os dados do novo empréstimo, em caso de sucesso.
+        None: Se ocorrer alguma violação das regras (limite, atraso, cópia indisponível, etc.).
+    """
     global _prox_id_emprestimo
     from src.sb import acervo # Importação local
 
@@ -150,11 +186,17 @@ def criar_emprestimo(id_cliente, id_copia):
     return novo_emprestimo
 
 
-def registrar_devolucao(id_copia):
-    '''
-        Registra a devolução de uma cópia, finalizando o empréstimo
-        e liberando a cópia no acervo.
-    '''
+def registrar_devolucao(id_copia: int) -> dict | None:
+    """
+    Registra a devolução de uma cópia de livro.
+
+    Parâmetros:
+        id_copia (int): ID da cópia devolvida.
+
+    Retorna:
+        dict: Dicionário do empréstimo atualizado, em caso de sucesso.
+        None: Se não houver empréstimo ativo associado à cópia.
+    """
     from src.sb import acervo
 
     # 1. Encontrar o empréstimo ativo para esta cópia
@@ -196,12 +238,37 @@ def registrar_devolucao(id_copia):
     print(f"Devolução registrada com sucesso para cópia {id_copia}.")
     return emprestimo_ativo
 
-def renovar_emprestimo(id_emprestimo, tipo_usuario):
-    '''
-        Renova um empréstimo por mais 7 dias úteis.
-        - Cliente não pode renovar se estiver atrasado.
-        - Funcionário pode renovar atrasado (multa implícita).
-    '''
+def renovar_emprestimo(id_emprestimo: int, tipo_usuario: str) -> bool:
+    """
+    Renova um empréstimo, estendendo a data de devolução prevista em 7 dias úteis.
+
+    Regras:
+        - Empréstimos finalizados não podem ser renovados.
+        - Se o empréstimo estiver "Em andamento":
+            * Apenas calcula uma nova DataDevolucaoPrevista (7 dias úteis após
+              a data prevista atual).
+        - Se o empréstimo estiver "Atrasado":
+            * Tipo "Cliente":
+                - Não pode renovar; deve se dirigir ao balcão.
+            * Tipo "Funcionario":
+                - Pode renovar, mas:
+                    1. É calculada uma multa via `multa.calcular_multa(emprestimo)`.
+                    2. O pagamento é registrado via
+                       `multa.registrar_pagamento_multa(...)`.
+                    3. Se o pagamento não for concluído, a renovação não ocorre.
+                    4. Se o pagamento for concluído, a renovação prossegue.
+
+    Parâmetros:
+        id_emprestimo (int): ID do empréstimo a ser renovado.
+        tipo_usuario (str): "Cliente" ou "Funcionario", usado para
+            aplicar as regras de atraso.
+
+    Retorna:
+        bool:
+            - True se a renovação foi realizada com sucesso.
+            - False em caso de erro, empréstimo não encontrado, finalizado,
+              atraso sem permissão ou falha no pagamento da multa.
+    """
     from src.sb import multa
 
     verificar_e_atualizar_atrasos()
@@ -248,10 +315,16 @@ def renovar_emprestimo(id_emprestimo, tipo_usuario):
     salvar_alteracoes()
     return True
 
-def get_historico_cliente(id_cliente):
-    '''
-        Retorna todos os empréstimos de um cliente específico
-    '''
+def get_historico_cliente(id_cliente: int) -> list[dict]:
+    """
+    Obtém todo o histórico de empréstimos de um cliente.
+
+    Parâmetros:
+        id_cliente (int): ID do cliente cujo histórico será consultado.
+
+    Retorna:
+        list[dict]: Lista de todos os empréstimos associados ao cliente.
+    """
     historico = []
     for emp in _lst_emprestimos:
         if emp["ID_Cliente_Referencia"] == id_cliente:

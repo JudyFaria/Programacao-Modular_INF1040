@@ -23,10 +23,21 @@ def salvar_alteracoes():
         "_prox_id_pagamento": _prox_id_pagamento
     })
 
-def calcular_dias_atraso(data_prevista_iso):
-    '''
-        Calcula quantos dias se passaram desde a data prevista até hoje.
-    '''
+def calcular_dias_atraso(data_prevista_iso: str) -> int:
+    """
+    Calcula quantos dias de atraso existem em relação à data prevista.
+
+    Parâmetros:
+        data_prevista_iso (str):
+            Data prevista no formato ISO (YYYY-MM-DD)
+
+    Retorno:
+        int:
+            Número de dias de atraso.
+            > 0  → atraso
+            = 0  → vence hoje
+            < 0  → ainda não venceu
+    """
     hoje = date.today()
     data_prevista = date.fromisoformat(data_prevista_iso)
     
@@ -35,15 +46,29 @@ def calcular_dias_atraso(data_prevista_iso):
 
 # --- Funções Principais ---
 
-def calcular_multa(emprestimo):
-    '''
-        Calcula o valor da multa usando Juros Compostos (RF-024).
-        Fórmula: M = P * (1 + i)^t
-        Onde:
+def calcular_multa(emprestimo: dict) -> float:
+    """
+    Calcula o valor da multa usando Juros Compostos (RF-024).
+
+        Fórmula:
+            M = P * (1 + i)^t
+            Onde:
             P = Valor Base
             i = Taxa Diária
             t = Dias de Atraso
-    '''
+
+        Parâmetros:
+            emprestimo (dict):
+                Dicionário contendo os dados do empréstimo.
+                Deve conter:
+                    - "Status": str
+                    - "DataDevolucaoPrevista": str (ISO)
+
+        Retorno:
+            float:
+                Valor da multa arredondado para 2 casas decimais.
+                Retorna 0.0 se o empréstimo não estiver atrasado.
+    """
     if emprestimo["Status"] != "Atrasado":
         return 0.0
     
@@ -58,11 +83,20 @@ def calcular_multa(emprestimo):
     # Arredonda para 2 casas decimais
     return round(montante, 2)
 
-def registrar_pagamento_multa(id_cliente, valor):
-    '''
-        Registra que uma multa foi paga pelo cliente.
-        Isso permite que o empréstimo seja renovado (RF-026).
-    '''
+def registrar_pagamento_multa(id_cliente: int, valor: float) -> bool:
+    """
+    Registra um pagamento de multa pelo cliente (RF-026).
+
+    Parâmetros:
+        id_cliente (int):
+            ID do cliente pagador.
+        valor (float):
+            Valor da multa a ser paga.
+
+    Retorno:
+        bool:
+            True se o pagamento for registrado com sucesso.
+    """
     global _prox_id_pagamento
     
     novo_pagamento = {
@@ -80,8 +114,16 @@ def registrar_pagamento_multa(id_cliente, valor):
     print(f"Pagamento de multa registrado: R$ {valor:.2f} (Cliente ID: {id_cliente})")
     return True
 
-def obter_pagamentos_cliente(id_cliente):
-    '''
-        Retorna histórico de multas pagas por um cliente
-    '''
+def obter_pagamentos_cliente(id_cliente: int) -> list[dict]:
+    """
+    Retorna o histórico de pagamentos de multa de um cliente.
+
+    Parâmetros:
+        id_cliente (int):
+            Identificador do cliente.
+
+    Retorno:
+        list[dict]:
+            Lista contendo todos os pagamentos já feitos pelo cliente.
+    """
     return [p for p in _lst_pagamentos if p["ID_Cliente"] == id_cliente]
