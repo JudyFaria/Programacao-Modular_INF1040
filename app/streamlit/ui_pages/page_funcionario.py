@@ -78,15 +78,27 @@ def render_page_gerenciar_usuarios(api):
         Recebe o objeto 'api' (o Façade) como argumento.
     '''
     st.title("Gerenciar Usuários")
-    abas = ["Cadastrar Cliente", "Excluir Cliente"]
+    abas = ["Clientes", "Cadastrar Cliente", "Excluir Cliente"]
     
     # A lógica de permissão (RF-003) está aqui
     if st.session_state.usuario_logado['Papel'] == "Administrador":
         abas.append("Cadastrar Novo Funcionário")
+        abas.append("Excluir Funcionáios")
     
     tabs = st.tabs(abas)
     
     with tabs[0]:
+        st.subheader("Lista de Clientes Cadastrados")
+        clientes = api.get_todos_clientes() # Chama a API
+        
+        if not clientes:
+            st.info("Nenhum cliente cadastrado.")
+        else:
+            df_clientes = pd.DataFrame(clientes)
+            st.dataframe(df_clientes, hide_index=True)
+
+        
+    with tabs[1]:
         st.subheader("Cadastrar Novo Cliente")
         with st.form("novo_cliente_form", clear_on_submit=True):
             nome = st.text_input("Nome")
@@ -99,7 +111,7 @@ def render_page_gerenciar_usuarios(api):
                 if "Sucesso" in msg: st.success(msg)
                 else: st.error(msg)
 
-    with tabs[1]:
+    with tabs[2]:
         st.subheader("Excluir Cliente")
         cpf_excluir = st.text_input("CPF do cliente a excluir")
        
@@ -112,9 +124,10 @@ def render_page_gerenciar_usuarios(api):
             else: 
                 st.error(msg)
 
-    # A aba só existe se o utilizador for Admin
+    # Essas abas só existe se o utilizador for Admin
     if "Cadastrar Novo Funcionário" in abas:
-        with tabs[2]:
+        
+        with tabs[3]:
             st.subheader("Cadastrar Novo Funcionário (Admin)")
             with st.form("novo_func_form", clear_on_submit=True):
                 nome = st.text_input("Nome de Usuário")
@@ -124,6 +137,28 @@ def render_page_gerenciar_usuarios(api):
                     msg = api.cadastrar_funcionario(nome, senha, papel) # Chama a API
                     if "Sucesso" in msg: st.success(msg)
                     else: st.error(msg)
+
+        with tabs[4]:
+            st.subheader("Excluir Funcionário (Admin)")
+            funcionarios = api.get_todos_funcionarios() # Chama a API
+            
+            if not funcionarios:
+                st.info("Nenhum funcionário cadastrado.")
+            else:
+                opcoes_func = {f"{f['NomeUsuario']} (Papel: {f['Papel']})": f['NomeUsuario'] for f in funcionarios}
+                selecionado_func = st.selectbox("Selecione o funcionário a excluir", ["Selecione..."] + list(opcoes_func.keys()))
+                
+                if selecionado_func != "Selecione...":
+                    nome_excluir = opcoes_func[selecionado_func]
+                    
+                    if st.button(f"Confirmar Exclusão de '{selecionado_func}'", type="primary"):
+                        sucesso, msg = api.excluir_funcionario(nome_excluir) # Chama a API
+                        
+                        if sucesso: 
+                            st.success(msg)
+                            st.rerun()
+                        else: 
+                            st.error(msg)
 
 
 def render_page_gerenciar_emprestimos(api):
