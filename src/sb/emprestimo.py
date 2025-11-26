@@ -351,3 +351,22 @@ def cliente_tem_pendencias(id_cliente: int) -> bool:
            emp["Status"] in ["Em andamento", "Atrasado"]):
             return True
     return False
+
+def copia_possui_emprestimo_ativo(id_copia: int) -> bool:
+    """
+    Verifica se existe algum empréstimo NÃO finalizado
+    associado à cópia informada.
+
+    Parâmetros:
+        id_copia (int): ID da cópia no acervo.
+
+    Retorno:
+        bool:
+            - True se houver empréstimo com Status diferente de "Finalizado".
+            - False caso contrário.
+    """
+    for emp in _lst_emprestimos:
+        if (emp["ID_Copia_Referencia"] == id_copia 
+            and emp["Status"] != "Finalizado"):
+            return True
+    return False

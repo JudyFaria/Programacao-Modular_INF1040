@@ -23,6 +23,18 @@ _lst_copias_livros = _loaded_state.get("_lst_copias_livros", [])
 _prox_id_livro = _loaded_state.get("_prox_id_livro", 1)
 _prox_id_copia = _loaded_state.get("_prox_id_copia", 1)
 
+def salvar_estado_acervo() -> None:
+    """
+    Persiste o estado atual do acervo no arquivo JSON.
+    Deve ser chamada apenas no encerramento da aplicação.
+    """
+    persistence.save("acervo", {
+        "_lst_livros": _lst_livros,
+        "_lst_copias_livros": _lst_copias_livros,
+        "_prox_id_livro": _prox_id_livro,
+        "_prox_id_copia": _prox_id_copia,
+    })
+
 def cadastrar_livro(titulo: str, autor: str, edicao: str) -> dict:
     """
     Verifica se um LIVRO (título/autor/edição) já existe.
@@ -66,14 +78,7 @@ def cadastrar_livro(titulo: str, autor: str, edicao: str) -> dict:
 
         _lst_livros.append(novo_livro)
         _prox_id_livro += 1
-        # persist changes
-        persistence.save("acervo", {
-            "_lst_livros": _lst_livros,
-            "_lst_copias_livros": _lst_copias_livros,
-            "_prox_id_livro": _prox_id_livro,
-            "_prox_id_copia": _prox_id_copia,
-        })
-    
+        
         return novo_livro
 
 
@@ -124,14 +129,6 @@ def add_copias(id_livro_ref: int, qtd_copias: int, localizacao: str) -> list[dic
         copias_add.append(nova_copia)
         _prox_id_copia += 1
 
-    # persist changes
-    persistence.save("acervo", {
-        "_lst_livros": _lst_livros,
-        "_lst_copias_livros": _lst_copias_livros,
-        "_prox_id_livro": _prox_id_livro,
-        "_prox_id_copia": _prox_id_copia,
-    })
-
     return copias_add
 
 
@@ -176,7 +173,7 @@ def buscar_livro(termo_busca: str) -> list[dict]:
                 if copia["ID_Livro_Referencia"] == id_livro_achado:
                     copias_deste_livro.append(copia)
 
-            #montando dicionário do resutado
+            #montando dicionário do resultado
             resultado_este_livro = {
                 "Livro": livro,
                 "Copias": copias_deste_livro,
@@ -210,22 +207,18 @@ def excluir_livro_e_copias(id_livro: int) -> bool:
     # Verificação se há cópias em empréstimo
     for copia in _lst_copias_livros:
         
-        if ( copia["ID_Livro_Referencia"] == id_livro ):
+        if ( copia["ID_Livro_Referencia"] != id_livro ):
+            continue
 
-            # se o status da cópia já indica 'Emprestado', basta bloquear
-            if copia.get("Status") == "Emprestado":
-                copia_emprestada = copia
-                break
-         
-            for emprestimo in ge._lst_emprestimos:
-                if ( (emprestimo.get("ID_Copia_Referencia") == copia["ID_Copia"]) 
-                    and (emprestimo.get("Status") != "Finalizado")
-                ):
-                    copia_emprestada = copia
-                    break
-
-            if (copia_emprestada):
-                break
+        # Se o status da cópia já indica 'Emprestado', bloqueia direto
+        if copia.get("Status") == "Emprestado":
+            copia_emprestada = copia
+            break
+        
+        # Pergunta AO MÓDULO DE EMPRÉSTIMO se há empréstimo ativo
+        if ge.copia_possui_emprestimo_ativo(copia["ID_Copia"]):
+            copia_emprestada = copia
+            break
 
     if copia_emprestada:
         print(f"ERRO: Exclusão falhou.")
@@ -234,8 +227,6 @@ def excluir_livro_e_copias(id_livro: int) -> bool:
         return False 
 
     # Exclusão (de forma segura)
-    
-    # copias
     copias_manter = [c for c in _lst_copias_livros if c["ID_Livro_Referencia"] != id_livro]
     livros_manter = [l for l in _lst_livros if l["ID_Livro"] != id_livro]
 
@@ -248,15 +239,6 @@ def excluir_livro_e_copias(id_livro: int) -> bool:
     _lst_livros = livros_manter
 
     print(f"SUCESSO: Livro (ID: {id_livro}) e suas cópias foram excluídos.")
-   
-    # persist changes
-    persistence.save("acervo", {
-        "_lst_livros": _lst_livros,
-        "_lst_copias_livros": _lst_copias_livros,
-        "_prox_id_livro": _prox_id_livro,
-        "_prox_id_copia": _prox_id_copia,
-    })
-
     return True
 
 def get_todos_livros():
