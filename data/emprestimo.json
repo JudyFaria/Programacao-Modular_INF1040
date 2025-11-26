@@ -1,0 +1,14 @@
+{
+  "_lst_emprestimos": [
+    {
+      "ID_Emprestimo": 1,
+      "ID_Copia_Referencia": 5,
+      "ID_Cliente_Referencia": 1,
+      "DataInicio": "2025-11-25",
+      "DataDevolucaoPrevista": "2025-12-04",
+      "DataDevolucaoReal": null,
+      "Status": "Em andamento"
+    }
+  ],
+  "_prox_id_emprestimo": 2
+}

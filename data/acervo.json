@@ -42,7 +42,7 @@
       "ID_Copia": 5,
       "ID_Livro_Referencia": 2,
       "LocalizacaoFisica": "Corredor 1-B",
-      "Status": "Disponível"
+      "Status": "Emprestado"
     }
   ],
   "_prox_id_livro": 3,
