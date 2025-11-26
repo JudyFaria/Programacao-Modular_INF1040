@@ -4,13 +4,19 @@
       "ID_Livro": 1,
       "Titulo": "O Senhor dos Anéis",
       "Autor": "J.R.R. Tolkien",
-      "Edicao": "HarperCollins"
+      "Editora": "HarperCollins"
     },
     {
       "ID_Livro": 2,
       "Titulo": "Duna",
       "Autor": "Frank Herbert",
-      "Edicao": "Editora Aleph"
+      "Editora": "Editora Aleph"
+    },
+    {
+      "ID_Livro": 3,
+      "Titulo": "O senhor da guerra",
+      "Autor": "Bernard Conrwell",
+      "Editora": "Record"
     }
   ],
   "_lst_copias_livros": [
@@ -42,9 +48,25 @@
       "ID_Copia": 5,
       "ID_Livro_Referencia": 2,
       "LocalizacaoFisica": "Corredor 1-B",
+<<<<<<< HEAD
       "Status": "Emprestado"
+=======
+      "Status": "Disponível"
+    },
+    {
+      "ID_Copia": 6,
+      "ID_Livro_Referencia": 3,
+      "LocalizacaoFisica": "Corredor 2-C",
+      "Status": "Disponível"
+    },
+    {
+      "ID_Copia": 7,
+      "ID_Livro_Referencia": 3,
+      "LocalizacaoFisica": "Corredor 2-C",
+      "Status": "Disponível"
+>>>>>>> 2bc3ab11cb55a2aa0304f651e753b72d9a2677b9
     }
   ],
-  "_prox_id_livro": 3,
-  "_prox_id_copia": 6
+  "_prox_id_livro": 4,
+  "_prox_id_copia": 8
 }

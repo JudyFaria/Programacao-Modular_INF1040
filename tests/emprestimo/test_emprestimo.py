@@ -190,7 +190,7 @@ def test_renovacao_funcionario_gera_pagamento_multa():
         assert len(pagamentos_antes) == 0
     
     # Calcula quanto deveria ser a multa para comparar depois
-    valor_multa_esperado = multa.calcular_multa(emp)
+    valor_multa_esperado = multa.calcular_multa(atraso_dias)
     assert valor_multa_esperado > 0
 
     # Funcionário renova

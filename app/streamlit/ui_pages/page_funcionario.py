@@ -14,14 +14,14 @@ def render_page_gerenciar_acervo(api):
         with st.form("novo_livro_form", clear_on_submit=True):
             titulo = st.text_input("Título")
             autor = st.text_input("Autor")
-            edicao = st.text_input("Edição/Editora")
+            editora = st.text_input("Editora")
             st.divider()
             quantidade = st.number_input("Qtd. Exemplares", min_value=1, value=1)
             localizacao = st.text_input("Localização")
             
             if st.form_submit_button("Cadastrar Título e Exemplares"):
                 
-                livro = api.cadastrar_livro(titulo, autor, edicao) # Chama a API
+                livro = api.cadastrar_livro(titulo, autor, editora) # Chama a API
                 
                 if not livro:
                     st.error(f"Erro ao cadastrar livro '{titulo}'.")
@@ -83,7 +83,7 @@ def render_page_gerenciar_usuarios(api):
     # A lógica de permissão (RF-003) está aqui
     if st.session_state.usuario_logado['Papel'] == "Administrador":
         abas.append("Cadastrar Novo Funcionário")
-        abas.append("Excluir Funcionáios")
+        abas.append("Excluir Funcionários")
     
     tabs = st.tabs(abas)
     
@@ -196,7 +196,7 @@ def render_page_gerenciar_emprestimos(api):
             exemplar_valido = None
             
             if id_exemplar > 0:
-                exemplar_valido = api.get_copia_por_id(id_exemplar)
+                exemplar_valido = api.busca_copia_por_id(id_exemplar)
                 if exemplar_valido:
                     status = exemplar_valido['Status']
                     titulo = exemplar_valido.get('Titulo_Livro', 'Desconhecido')
@@ -225,7 +225,7 @@ def render_page_gerenciar_emprestimos(api):
         # Coluna da Direita: Tabela de apoio
         with col2:
             st.caption("Itens disponíveis no Acervo:")
-            lista_disp = api.get_copias_disponiveis_simples()
+            lista_disp = api.busca_copias_disponiveis_simples()
             if lista_disp:
                 # Usa DataFrame para visualização tabular bonita
                 df = pd.DataFrame(lista_disp)

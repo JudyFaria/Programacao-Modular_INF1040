@@ -28,6 +28,21 @@ _lst_clientes = _loaded_state.get("_lst_clientes", [])
 _prox_id_funcionario = _loaded_state.get("_prox_id_funcionario", 1)
 _prox_id_cliente = _loaded_state.get("_prox_id_cliente", 1) #contador para gerar os ids automaticamente
 
+def salvar_estado_usuarios() -> None:
+    """
+    Persiste o estado atual de funcionários e clientes no arquivo JSON.
+    Deve ser chamada apenas no encerramento da aplicação.
+    """
+    persistence.save(
+        "gestao_usuarios",
+        {
+            "_lst_funcionarios": _lst_funcionarios,
+            "_lst_clientes": _lst_clientes,
+            "_prox_id_funcionario": _prox_id_funcionario,
+            "_prox_id_cliente": _prox_id_cliente,
+        },
+    )
+
 
 def _gerar_hash_senha(senha: str) -> str:
     """
@@ -69,14 +84,6 @@ def cadastrar_funcionario(nome: str, senha: str, papel: str) -> dict:
     _lst_funcionarios.append(novo_func) # addicionando na lista 
     _prox_id_funcionario += 1
 
-    # persist changes
-    persistence.save("gestao_usuarios", {
-        "_lst_funcionarios": _lst_funcionarios,
-        "_lst_clientes": _lst_clientes,
-        "_prox_id_funcionario": _prox_id_funcionario,
-        "_prox_id_cliente": _prox_id_cliente,
-    })
-
     return novo_func
 
 def cadastrar_cliente(nome: str, cpf: str, endereco: str, tel: str, senha: str) -> dict | None:
@@ -114,14 +121,6 @@ def cadastrar_cliente(nome: str, cpf: str, endereco: str, tel: str, senha: str) 
     _lst_clientes.append(novo_cliente) 
     _prox_id_cliente += 1
 
-    # persist changes
-    persistence.save("gestao_usuarios", {
-        "_lst_funcionarios": _lst_funcionarios,
-        "_lst_clientes": _lst_clientes,
-        "_prox_id_funcionario": _prox_id_funcionario,
-        "_prox_id_cliente": _prox_id_cliente,
-    })
-
     return novo_cliente
 
 
@@ -137,7 +136,6 @@ def inicializar_admin_padrao() -> None:
 
     if len(_lst_funcionarios) == 0:
         cadastrar_funcionario("admin", "admin123", "Administrador")
-        # cadastrar_funcionario already persists the change
 
 
 def excluir_cliente(cpf: str) -> bool:
@@ -229,7 +227,7 @@ def autenticar(usuario: str, senha: str) -> dict | None:
                 "Tipo": "Funcionario",
                 "ID": funcionario["ID_Funcionario"],
                 "Papel": funcionario["Papel"],
-                "Token": f'TOKEN_FUNC_{funcionario["ID_Funcionario"]}', # token simulado
+                "Token": f"TOKEN_FUNC_{funcionario['ID_Funcionario']}", # token simulado
                 "Nome" : funcionario["NomeUsuario"]
             }
 
@@ -242,11 +240,11 @@ def autenticar(usuario: str, senha: str) -> dict | None:
             return {
                 "Tipo": "Cliente",
                 "ID": cliente["ID_Cliente"],
-                "Token": f'TOKEN_CLIENTE_{cliente["ID_Cliente"]}', # token simulado
+                "Token": f"TOKEN_CLIENTE_{cliente['ID_Cliente']}", # token simulado
                 "Nome": cliente["Nome"]
             }
         
-    # não achou 
+    # Não encontrou usuário ou senha inválida
     return None
 
 # funções auxiliares para frontend
@@ -267,3 +265,20 @@ def get_todos_funcionarios() -> list[dict]:
         list[dict]: Lista com todos os dicionários de funcionários.
     """
     return _lst_funcionarios
+
+def get_cliente_por_cpf(cpf: str) -> dict | None:
+    """
+    Busca e retorna um cliente específico pelo CPF.
+
+    Parâmetros:
+        cpf (str): CPF do cliente desejado.
+
+    Retorna:
+        dict | None:
+            - Dicionário do cliente, se encontrado.
+            - None se não existir cliente com esse CPF.
+    """
+    for cliente in _lst_clientes:
+        if cliente["CPF"] == cpf:
+            return cliente
+    return None

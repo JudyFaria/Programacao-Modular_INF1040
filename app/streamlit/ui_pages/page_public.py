@@ -20,7 +20,7 @@ def render_page_pesquisar(api):
             st.success(f"{len(resultados)} livro(s) encontrado(s):")
             for item in resultados:
                 st.subheader(f"{item['Livro']['Titulo']} (ID: {item['Livro']['ID_Livro']})")
-                st.caption(f"Autor: {item['Livro']['Autor']} | Edição: {item['Livro']['Edicao']}")
+                st.caption(f"Autor: {item['Livro']['Autor']} | Editora: {item['Livro']['Editora']}")
                 if not item["Copias"]:
                     st.info("Este título está cadastrado, mas não há cópias disponíveis.")
                 else:

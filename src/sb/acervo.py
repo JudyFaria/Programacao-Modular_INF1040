@@ -4,7 +4,7 @@
 #     ID_Livro (Inteiro, Chave Primária)
 #     Titulo (Texto)
 #     Autor (Texto)
-#     Edicao (Texto)
+#     Editora (Texto)
 
 # Copia (Exemplar Físico):
 #     ID_Copia (Inteiro, Chave Primária)
@@ -23,15 +23,27 @@ _lst_copias_livros = _loaded_state.get("_lst_copias_livros", [])
 _prox_id_livro = _loaded_state.get("_prox_id_livro", 1)
 _prox_id_copia = _loaded_state.get("_prox_id_copia", 1)
 
-def cadastrar_livro(titulo: str, autor: str, edicao: str) -> dict:
+def salvar_estado_acervo() -> None:
     """
-    Verifica se um LIVRO (título/autor/edição) já existe.
+    Persiste o estado atual do acervo no arquivo JSON.
+    Deve ser chamada apenas no encerramento da aplicação.
+    """
+    persistence.save("acervo", {
+        "_lst_livros": _lst_livros,
+        "_lst_copias_livros": _lst_copias_livros,
+        "_prox_id_livro": _prox_id_livro,
+        "_prox_id_copia": _prox_id_copia,
+    })
+
+def cadastrar_livro(titulo: str, autor: str, editora: str) -> dict:
+    """
+    Verifica se um LIVRO (título/autor/editora) já existe.
         Se não existir, cadastra em `_lst_livros`.
 
     Parâmetros:
         titulo (str): Título do livro.
         autor  (str): Nome do autor.
-        edicao (str): Informação da edição (ex.: "1ª edição", "2ª ed.").
+        editora (str): Nome da editora.
 
     Retorno:
         dict:
@@ -47,13 +59,13 @@ def cadastrar_livro(titulo: str, autor: str, edicao: str) -> dict:
 
         if ( (livro["Titulo"] == titulo) 
             and (livro["Autor"] ==  autor) 
-            and (livro["Edicao"] == edicao)
+            and (livro["Editora"] == editora)
         ):
             livro_existente = livro
             break # não procura mais 
 
     if livro_existente:
-        # print(f"Erro! O livro '{titulo}'  (Ed. {edicao}) já está cadastrado com o Id {livro["ID_livro"]}.")
+        # print(f"Erro! O livro '{titulo}'  (Editora {editora}) já está cadastrado com o Id {livro["ID_livro"]}.")
         return livro_existente
     
     else: 
@@ -61,19 +73,12 @@ def cadastrar_livro(titulo: str, autor: str, edicao: str) -> dict:
             "ID_Livro": _prox_id_livro,
             "Titulo": titulo,
             "Autor": autor,
-            "Edicao": edicao
+            "Editora": editora
         }
 
         _lst_livros.append(novo_livro)
         _prox_id_livro += 1
-        # persist changes
-        persistence.save("acervo", {
-            "_lst_livros": _lst_livros,
-            "_lst_copias_livros": _lst_copias_livros,
-            "_prox_id_livro": _prox_id_livro,
-            "_prox_id_copia": _prox_id_copia,
-        })
-    
+        
         return novo_livro
 
 
@@ -124,21 +129,13 @@ def add_copias(id_livro_ref: int, qtd_copias: int, localizacao: str) -> list[dic
         copias_add.append(nova_copia)
         _prox_id_copia += 1
 
-    # persist changes
-    persistence.save("acervo", {
-        "_lst_livros": _lst_livros,
-        "_lst_copias_livros": _lst_copias_livros,
-        "_prox_id_livro": _prox_id_livro,
-        "_prox_id_copia": _prox_id_copia,
-    })
-
     return copias_add
 
 
 
 def buscar_livro(termo_busca: str) -> list[dict]:
     """
-    Busca livros por Título, Autor ou Edição.
+    Busca livros por Título, Autor ou Editora.
 
     A busca é feita de forma case-insensitive, verificando se o termo
     aparece em qualquer um dos campos.
@@ -148,7 +145,7 @@ def buscar_livro(termo_busca: str) -> list[dict]:
             Palavra ou trecho a ser buscado em:
                 - Titulo
                 - Autor
-                - Edicao
+                - Editora
 
     Retorno:
         list[dict]:
@@ -166,7 +163,7 @@ def buscar_livro(termo_busca: str) -> list[dict]:
 
         if ( (termo_busca.lower() in livro["Titulo"].lower() ) 
             or ( termo_busca.lower() in livro["Autor"].lower() )
-            or ( termo_busca.lower() in livro["Edicao"].lower()) 
+            or ( termo_busca.lower() in livro["Editora"].lower()) 
             ):
             
             id_livro_achado = livro["ID_Livro"]
@@ -176,7 +173,7 @@ def buscar_livro(termo_busca: str) -> list[dict]:
                 if copia["ID_Livro_Referencia"] == id_livro_achado:
                     copias_deste_livro.append(copia)
 
-            #montando dicionário do resutado
+            #montando dicionário do resultado
             resultado_este_livro = {
                 "Livro": livro,
                 "Copias": copias_deste_livro,
@@ -210,32 +207,26 @@ def excluir_livro_e_copias(id_livro: int) -> bool:
     # Verificação se há cópias em empréstimo
     for copia in _lst_copias_livros:
         
-        if ( copia["ID_Livro_Referencia"] == id_livro ):
+        if ( copia["ID_Livro_Referencia"] != id_livro ):
+            continue
 
-            # se o status da cópia já indica 'Emprestado', basta bloquear
-            if copia.get("Status") == "Emprestado":
-                copia_emprestada = copia
-                break
-         
-            for emprestimo in ge._lst_emprestimos:
-                if ( (emprestimo.get("ID_Copia_Referencia") == copia["ID_Copia"]) 
-                    and (emprestimo.get("Status") != "Finalizado")
-                ):
-                    copia_emprestada = copia
-                    break
-
-            if (copia_emprestada):
-                break
+        # Se o status da cópia já indica 'Emprestado', bloqueia direto
+        if copia.get("Status") == "Emprestado":
+            copia_emprestada = copia
+            break
+        
+        # Pergunta AO MÓDULO DE EMPRÉSTIMO se há empréstimo ativo
+        if ge.copia_possui_emprestimo_ativo(copia["ID_Copia"]):
+            copia_emprestada = copia
+            break
 
     if copia_emprestada:
-        print(f"ERRO: Exclusão falhou.")
+        print(f"ERRO: Exclusão falhou - Exemplar possui empréstimo ativo.")
         print(f"O livro (ID: {id_livro}) não pode ser excluído pois a")
         print(f"cópia (ID: {copia_emprestada['ID_Copia']}) está 'Emprestado'.")
         return False 
 
     # Exclusão (de forma segura)
-    
-    # copias
     copias_manter = [c for c in _lst_copias_livros if c["ID_Livro_Referencia"] != id_livro]
     livros_manter = [l for l in _lst_livros if l["ID_Livro"] != id_livro]
 
@@ -248,15 +239,6 @@ def excluir_livro_e_copias(id_livro: int) -> bool:
     _lst_livros = livros_manter
 
     print(f"SUCESSO: Livro (ID: {id_livro}) e suas cópias foram excluídos.")
-   
-    # persist changes
-    persistence.save("acervo", {
-        "_lst_livros": _lst_livros,
-        "_lst_copias_livros": _lst_copias_livros,
-        "_prox_id_livro": _prox_id_livro,
-        "_prox_id_copia": _prox_id_copia,
-    })
-
     return True
 
 def get_todos_livros():
@@ -278,3 +260,92 @@ def get_todas_copias():
             Lista com todas as cópias cadastradas no acervo.
     """
     return _lst_copias_livros
+
+def get_copia_por_id(id_copia: int) -> dict | None:
+    """
+    Busca e retorna uma cópia específica pelo ID.
+
+    Parâmetros:
+        id_copia (int): ID da cópia desejada.
+
+    Retorno:
+        dict | None:
+            - Dicionário da cópia, se encontrada.
+            - None se não existir cópia com esse ID.
+    """
+    for copia in _lst_copias_livros:
+        if copia["ID_Copia"] == id_copia:
+            return copia
+    return None
+
+
+def atualizar_status_copia(id_copia: int, novo_status: str) -> bool:
+    """
+    Atualiza o campo 'Status' de uma cópia específica.
+
+    Parâmetros:
+        id_copia (int): ID da cópia que terá o status alterado.
+        novo_status (str): Novo status (ex: 'Disponível', 'Emprestado').
+
+    Retorno:
+        bool:
+            - True se a cópia foi encontrada e atualizada.
+            - False se a cópia não existir.
+    """
+    copia = get_copia_por_id(id_copia)
+    if copia is None:
+        return False
+
+    copia["Status"] = novo_status
+    return True
+
+def get_copia_por_id_com_titulo(id_copia):
+    """
+    Retorna os dados completos de uma cópia, incluindo o título do livro associado.
+    """
+    # cópias (já existem no módulo acervo)
+    todas_copias = get_todas_copias()
+    todos_livros = get_todos_livros()
+    
+    copia_alvo = None
+    for c in todas_copias:
+        if c["ID_Copia"] == id_copia:
+            copia_alvo = c.copy()  # evita modificar o original
+            break
+
+    if not copia_alvo:
+        return None
+
+    # encontra o título do livro associado
+    titulo = next(
+        (l["Titulo"] for l in todos_livros if l["ID_Livro"] == copia_alvo["ID_Livro_Referencia"]),
+        "Desconhecido"
+    )
+    
+    copia_alvo["Titulo_Livro"] = titulo
+    return copia_alvo
+
+
+def get_copias_disponiveis_simples():
+    """
+    Retorna uma lista simples com as cópias disponíveis para empréstimo.
+    """
+    todas_copias = get_todas_copias()
+    todos_livros = get_todos_livros()
+
+    resultado = []
+    for c in todas_copias:
+        if c["Status"] == "Disponível":
+
+            titulo = next(
+                (l["Titulo"] for l in todos_livros if l["ID_Livro"] == c["ID_Livro_Referencia"]),
+                "Indefinido"
+            )
+
+            resultado.append({
+                "ID": c["ID_Copia"],
+                "Titulo": titulo,
+                "Localizacao": c["LocalizacaoFisica"]
+            })
+
+    return resultado

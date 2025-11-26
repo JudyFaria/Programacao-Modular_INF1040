@@ -3,6 +3,23 @@ import src.sb.acervo as acervo
 import src.sb.emprestimo as ge
 import src.sb.gestao_usuarios as gu
 import src.sb.multa as multa
+import atexit
+
+# ------ FUNÇAO PARA SALVAR ESTADO DO SISTEMA ------
+
+def salvar_estado_sistema():
+    """
+    Salva o estado de todos os módulos no disco.
+    Pode ser chamada ao encerrar o sistema.
+    """
+    print(">> Salvando estado do sistema (atexit)...")
+    acervo.salvar_estado_acervo()
+    ge.salvar_estado_emprestimos()
+    gu.salvar_estado_usuarios()
+    multa.salvar_estado_multas()
+
+atexit.register(salvar_estado_sistema)
+
 
 def inicializar_sistema():
     '''
@@ -10,41 +27,10 @@ def inicializar_sistema():
         IDEMPOTENTE: não duplica dados se rodar múltiplas vezes.
     '''
     gu.inicializar_admin_padrao()
-    
-    # POPULA ACERVO (Apenas se não houver livros)  
-    livros_existentes = acervo.get_todos_livros()
-    
-    if not livros_existentes:
-        print("Inicializando Acervo com dados de exemplo...")
-        
-        # Livro 1
-        l1 = acervo.cadastrar_livro("O Senhor dos Anéis", "J.R.R. Tolkien", "HarperCollins")
-        
-        # Se cadastrou agora (retornou dict), adiciona cópias
-        if l1: 
-            acervo.add_copias(l1["ID_Livro"], 3, "Corredor 1-A")
-        
-        # Livro 2
-        l2 = acervo.cadastrar_livro("Duna", "Frank Herbert", "Editora Aleph")
-        if l2:
-            acervo.add_copias(l2["ID_Livro"], 2, "Corredor 1-B")
-
-    # POPULA CLIENTES (Verifica duplicidade por CPF) 
-    clientes = gu.get_todos_clientes()
-    cpf_exemplo = "111"
-    
-    # Verifica se já existe algum cliente com esse CPF na lista
-    cliente_existe = False
-    for c in clientes:
-        if str(c.get('CPF')).strip() == cpf_exemplo:
-            cliente_existe = True
-            break
-    
-    if not cliente_existe:
-        gu.cadastrar_cliente("Ana Silva", cpf_exemplo, "Rua A", "9999", "ana123")
 
     # Verifica atrasos
     ge.verificar_e_atualizar_atrasos()
+
 
 # Wrappers - Gestão de Usuário
 def autenticar_usuario(usuario, senha):
@@ -71,15 +57,15 @@ def get_todos_clientes():
 def get_todos_funcionarios():
     return gu.get_todos_funcionarios()
 
+def buscar_cliente_por_cpf(cpf):
+    return gu.get_cliente_por_cpf(cpf)
+
 # Wrappers - Acervo
 def buscar_livro(termo):
     return acervo.buscar_livro(termo)
 
-def get_todos_livros():
-    return acervo.get_todos_livros()
-
-def cadastrar_livro(titulo, autor, edicao):
-    return acervo.cadastrar_livro(titulo, autor, edicao)
+def cadastrar_livro(titulo, autor, editora):
+    return acervo.cadastrar_livro(titulo, autor, editora)
 
 def add_copias(id_livro, qtd, loc):
     return acervo.add_copias(id_livro, qtd, loc)
@@ -90,8 +76,11 @@ def excluir_livro(id_livro):
 def get_todos_livros():
     return acervo.get_todos_livros()
 
-def get_todas_copias():
-    return acervo.get_todas_copias()
+def busca_copia_por_id(id_copia):
+    return acervo.get_copia_por_id_com_titulo(id_copia)
+
+def busca_copias_disponiveis_simples():
+    return acervo.get_copias_disponiveis_simples()
 
 
 # Wrappers - Empréstimo 
@@ -115,67 +104,3 @@ def renovar_emprestimo(id_emprestimo, tipo_usuario):
 
 def get_historico_cliente(id_cliente):
     return ge.get_historico_cliente(id_cliente)
-
-
-# --- FUNÇÕES AUXILIARES DE LEITURA (Para o Front-End) ---
-
-def buscar_cliente_por_cpf(cpf):
-    ''' 
-        Busca um cliente na lista de usuários pelo CPF.
-        Retorna o dicionário do usuário ou None.
-    '''
-    clientes = gu.get_todos_clientes()
-
-    for usuario in clientes:
-        print(usuario)
-        if usuario.get("CPF") == cpf :
-            return usuario
-    
-    return None
-
-def get_copia_por_id(id_copia):
-    ''' 
-        Cruza informações de Cópia e Livro para exibição na UI.
-        Acessa dados apenas através das funções públicas (getters).
-    '''
-    todas_copias = acervo.get_todas_copias()
-    todos_livros = acervo.get_todos_livros()
-    
-    copia_alvo = None
-    for c in todas_copias:
-        if c["ID_Copia"] == id_copia:
-            copia_alvo = c.copy() # Copia para não alterar o original
-            break
-            
-    if copia_alvo:
-        # Busca o título correspondente
-        titulo = "Desconhecido"
-        for l in todos_livros:
-            if l["ID_Livro"] == copia_alvo["ID_Livro_Referencia"]:
-                titulo = l["Titulo"]
-                break
-        copia_alvo["Titulo_Livro"] = titulo
-        return copia_alvo
-        
-    return None
-
-def get_copias_disponiveis_simples():
-    ''' 
-        Gera um relatório simples de cópias disponíveis.
-        Usa getters para acessar acervo.
-    '''
-    todas_copias = acervo.get_todas_copias()
-    todos_livros = acervo.get_todos_livros()
-    
-    resultado = []
-    for c in todas_copias:
-        if c["Status"] == "Disponível":
-            # Encontra o título (next com valor default)
-            titulo = next((l["Titulo"] for l in todos_livros if l["ID_Livro"] == c["ID_Livro_Referencia"]), "Indefinido")
-            
-            resultado.append({
-                "ID": c["ID_Copia"],
-                "Titulo": titulo,
-                "Localizacao": c["LocalizacaoFisica"]
-            })
-    return resultado
