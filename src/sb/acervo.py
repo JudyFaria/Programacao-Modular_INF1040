@@ -298,3 +298,54 @@ def atualizar_status_copia(id_copia: int, novo_status: str) -> bool:
 
     copia["Status"] = novo_status
     return True
+
+def get_copia_por_id_com_titulo(id_copia):
+    """
+    Retorna os dados completos de uma cópia, incluindo o título do livro associado.
+    """
+    # cópias (já existem no módulo acervo)
+    todas_copias = get_todas_copias()
+    todos_livros = get_todos_livros()
+    
+    copia_alvo = None
+    for c in todas_copias:
+        if c["ID_Copia"] == id_copia:
+            copia_alvo = c.copy()  # evita modificar o original
+            break
+
+    if not copia_alvo:
+        return None
+
+    # encontra o título do livro associado
+    titulo = next(
+        (l["Titulo"] for l in todos_livros if l["ID_Livro"] == copia_alvo["ID_Livro_Referencia"]),
+        "Desconhecido"
+    )
+    
+    copia_alvo["Titulo_Livro"] = titulo
+    return copia_alvo
+
+
+def get_copias_disponiveis_simples():
+    """
+    Retorna uma lista simples com as cópias disponíveis para empréstimo.
+    """
+    todas_copias = get_todas_copias()
+    todos_livros = get_todos_livros()
+
+    resultado = []
+    for c in todas_copias:
+        if c["Status"] == "Disponível":
+
+            titulo = next(
+                (l["Titulo"] for l in todos_livros if l["ID_Livro"] == c["ID_Livro_Referencia"]),
+                "Indefinido"
+            )
+
+            resultado.append({
+                "ID": c["ID_Copia"],
+                "Titulo": titulo,
+                "Localizacao": c["LocalizacaoFisica"]
+            })
+
+    return resultado

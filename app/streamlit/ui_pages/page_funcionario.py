@@ -196,7 +196,7 @@ def render_page_gerenciar_emprestimos(api):
             exemplar_valido = None
             
             if id_exemplar > 0:
-                exemplar_valido = api.get_copia_por_id(id_exemplar)
+                exemplar_valido = api.busca_copia_por_id(id_exemplar)
                 if exemplar_valido:
                     status = exemplar_valido['Status']
                     titulo = exemplar_valido.get('Titulo_Livro', 'Desconhecido')
@@ -225,7 +225,7 @@ def render_page_gerenciar_emprestimos(api):
         # Coluna da Direita: Tabela de apoio
         with col2:
             st.caption("Itens disponíveis no Acervo:")
-            lista_disp = api.get_copias_disponiveis_simples()
+            lista_disp = api.busca_copias_disponiveis_simples()
             if lista_disp:
                 # Usa DataFrame para visualização tabular bonita
                 df = pd.DataFrame(lista_disp)

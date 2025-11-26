@@ -265,3 +265,20 @@ def get_todos_funcionarios() -> list[dict]:
         list[dict]: Lista com todos os dicionários de funcionários.
     """
     return _lst_funcionarios
+
+def get_cliente_por_cpf(cpf: str) -> dict | None:
+    """
+    Busca e retorna um cliente específico pelo CPF.
+
+    Parâmetros:
+        cpf (str): CPF do cliente desejado.
+
+    Retorna:
+        dict | None:
+            - Dicionário do cliente, se encontrado.
+            - None se não existir cliente com esse CPF.
+    """
+    for cliente in _lst_clientes:
+        if cliente["CPF"] == cpf:
+            return cliente
+    return None
