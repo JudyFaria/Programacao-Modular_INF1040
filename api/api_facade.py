@@ -3,6 +3,23 @@ import src.sb.acervo as acervo
 import src.sb.emprestimo as ge
 import src.sb.gestao_usuarios as gu
 import src.sb.multa as multa
+import atexit
+
+# ------ FUNÇAO PARA SALVAR ESTADO DO SISTEMA ------
+
+def salvar_estado_sistema():
+    """
+    Salva o estado de todos os módulos no disco.
+    Pode ser chamada ao encerrar o sistema.
+    """
+    print(">> Salvando estado do sistema (atexit)...")
+    acervo.salvar_estado_acervo()
+    ge.salvar_estado_emprestimos()
+    gu.salvar_estado_usuarios()
+    multa.salvar_estado_multas()
+
+atexit.register(salvar_estado_sistema)
+
 
 def inicializar_sistema():
     '''
@@ -10,41 +27,10 @@ def inicializar_sistema():
         IDEMPOTENTE: não duplica dados se rodar múltiplas vezes.
     '''
     gu.inicializar_admin_padrao()
-    
-    # POPULA ACERVO (Apenas se não houver livros)  
-    livros_existentes = acervo.get_todos_livros()
-    
-    if not livros_existentes:
-        print("Inicializando Acervo com dados de exemplo...")
-        
-        # Livro 1
-        l1 = acervo.cadastrar_livro("O Senhor dos Anéis", "J.R.R. Tolkien", "HarperCollins")
-        
-        # Se cadastrou agora (retornou dict), adiciona cópias
-        if l1: 
-            acervo.add_copias(l1["ID_Livro"], 3, "Corredor 1-A")
-        
-        # Livro 2
-        l2 = acervo.cadastrar_livro("Duna", "Frank Herbert", "Editora Aleph")
-        if l2:
-            acervo.add_copias(l2["ID_Livro"], 2, "Corredor 1-B")
-
-    # POPULA CLIENTES (Verifica duplicidade por CPF) 
-    clientes = gu.get_todos_clientes()
-    cpf_exemplo = "12345678900"
-    
-    # Verifica se já existe algum cliente com esse CPF na lista
-    cliente_existe = False
-    for c in clientes:
-        if str(c.get('CPF')).strip() == cpf_exemplo:
-            cliente_existe = True
-            break
-    
-    if not cliente_existe:
-        gu.cadastrar_cliente("Ana Silva", cpf_exemplo, "Rua A", "9999", "ana123")
 
     # Verifica atrasos
     ge.verificar_e_atualizar_atrasos()
+    
 
 # Wrappers - Gestão de Usuário
 def autenticar_usuario(usuario, senha):
