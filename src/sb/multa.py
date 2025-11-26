@@ -12,16 +12,17 @@ _loaded_state = persistence.load("multas", {})
 _lst_pagamentos = _loaded_state.get("_lst_pagamentos", [])
 _prox_id_pagamento = _loaded_state.get("_prox_id_pagamento", 1)
 
-# --- Funções Auxiliares ---
 
-def salvar_alteracoes():
-    '''
-        Salva o histórico de pagamentos
-    '''
+def salvar_estado_multas() -> None:
+    """
+    Persiste o estado atual das multas no arquivo JSON.
+    Deve ser chamada apenas no encerramento da aplicação.
+    """
     persistence.save("multas", {
         "_lst_pagamentos": _lst_pagamentos,
         "_prox_id_pagamento": _prox_id_pagamento
     })
+
 
 def calcular_dias_atraso(data_prevista_iso: str) -> int:
     """
@@ -43,6 +44,7 @@ def calcular_dias_atraso(data_prevista_iso: str) -> int:
     
     delta = hoje - data_prevista
     return delta.days
+
 
 # --- Funções Principais ---
 
@@ -83,6 +85,7 @@ def calcular_multa(emprestimo: dict) -> float:
     # Arredonda para 2 casas decimais
     return round(montante, 2)
 
+
 def registrar_pagamento_multa(id_cliente: int, valor: float) -> bool:
     """
     Registra um pagamento de multa pelo cliente (RF-026).
@@ -108,8 +111,6 @@ def registrar_pagamento_multa(id_cliente: int, valor: float) -> bool:
     
     _lst_pagamentos.append(novo_pagamento)
     _prox_id_pagamento += 1
-    
-    salvar_alteracoes()
     
     print(f"Pagamento de multa registrado: R$ {valor:.2f} (Cliente ID: {id_cliente})")
     return True
