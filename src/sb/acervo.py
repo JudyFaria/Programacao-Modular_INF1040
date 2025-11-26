@@ -37,13 +37,13 @@ def salvar_estado_acervo() -> None:
 
 def cadastrar_livro(titulo: str, autor: str, editora: str) -> dict:
     """
-    Verifica se um LIVRO (título/autor/edição) já existe.
+    Verifica se um LIVRO (título/autor/editora) já existe.
         Se não existir, cadastra em `_lst_livros`.
 
     Parâmetros:
         titulo (str): Título do livro.
         autor  (str): Nome do autor.
-        editora (str): Informação da edição (ex.: "1ª edição", "2ª ed.").
+        editora (str): Nome da editora.
 
     Retorno:
         dict:
@@ -65,7 +65,7 @@ def cadastrar_livro(titulo: str, autor: str, editora: str) -> dict:
             break # não procura mais 
 
     if livro_existente:
-        # print(f"Erro! O livro '{titulo}'  (Ed. {editora}) já está cadastrado com o Id {livro["ID_livro"]}.")
+        # print(f"Erro! O livro '{titulo}'  (Editora {editora}) já está cadastrado com o Id {livro["ID_livro"]}.")
         return livro_existente
     
     else: 
@@ -135,7 +135,7 @@ def add_copias(id_livro_ref: int, qtd_copias: int, localizacao: str) -> list[dic
 
 def buscar_livro(termo_busca: str) -> list[dict]:
     """
-    Busca livros por Título, Autor ou Edição.
+    Busca livros por Título, Autor ou Editora.
 
     A busca é feita de forma case-insensitive, verificando se o termo
     aparece em qualquer um dos campos.
