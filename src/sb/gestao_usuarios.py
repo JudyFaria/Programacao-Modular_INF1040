@@ -140,15 +140,13 @@ def inicializar_admin_padrao() -> None:
         # cadastrar_funcionario already persists the change
 
 
-def excluir_cliente(cpf: str, lista_emprestimos: list | None = None) -> bool:
+def excluir_cliente(cpf: str) -> bool:
 
     """
     Exclui um cliente do sistema, se não houver emprestimos pendentes.
 
     Parâmetros:
         cpf (str): CPF do cliente a ser excluído.
-        lista_emprestimos (list | None): Lista de empréstimos para verificar
-            pendências. Se None, será buscada no módulo de empréstimo.
         
     Retorna:
         bool: 
@@ -171,35 +169,19 @@ def excluir_cliente(cpf: str, lista_emprestimos: list | None = None) -> bool:
     
     # procura pendências na lst de emprestimo
     id_cliente = cliente_encontrado["ID_Cliente"]
-    tem_pendencias = False
-
-    # se o chamador passou uma lista (injeção), use-a; senão peça ao módulo de emprestimo
-    if lista_emprestimos is not None:
-        emprestimos_a_consultar = lista_emprestimos
-    else:
-        emprestimos_a_consultar = ge.get_todos_emprestimos() if hasattr(ge, 'get_todos_emprestimos') else getattr(ge, '_lst_emprestimos', [])
-
-    for em in emprestimos_a_consultar:
-        if (em.get("ID_Cliente_Referencia") == id_cliente
-            and em.get("Status") != "Finalizado"
-        ):
-            tem_pendencias = True
-            break
-
-    if tem_pendencias:
-        print(f"Erro! Cliente {cliente_encontrado['Nome']} (CPF: {cpf}) não pode ser excluído pois tem empréstimos pendentes.")
+    
+    # Pergunta ao módulo de empréstimo se ele tem pendências
+    if ge.cliente_tem_pendencias(id_cliente):
+        print(
+            f"Erro! Cliente {cliente_encontrado['Nome']} (CPF: {cpf}) "
+            "não pode ser excluído pois tem empréstimos pendentes."
+        )
         return False
     
-    # Foi encontrado e não tem pendencias
+    # Não tem pendencias: pode excluir
     _lst_clientes.remove(cliente_encontrado)
     print(f"Excluido: Cliente: {cliente_encontrado['Nome']} | (CPF: {cpf})")
-    # persist changes
-    persistence.save("gestao_usuarios", {
-        "_lst_funcionarios": _lst_funcionarios,
-        "_lst_clientes": _lst_clientes,
-        "_prox_id_funcionario": _prox_id_funcionario,
-        "_prox_id_cliente": _prox_id_cliente,
-    })
+    
     return True
 
 
@@ -247,7 +229,7 @@ def autenticar(usuario: str, senha: str) -> dict | None:
                 "Tipo": "Funcionario",
                 "ID": funcionario["ID_Funcionario"],
                 "Papel": funcionario["Papel"],
-                "Token": f"TOKEN_FUNC_{funcionario["ID_Funcionario"]}", # token simulado
+                "Token": f'TOKEN_FUNC_{funcionario["ID_Funcionario"]}', # token simulado
                 "Nome" : funcionario["NomeUsuario"]
             }
 
@@ -260,7 +242,7 @@ def autenticar(usuario: str, senha: str) -> dict | None:
             return {
                 "Tipo": "Cliente",
                 "ID": cliente["ID_Cliente"],
-                "Token": f"TOKEN_CLIENTE_{cliente["ID_Cliente"]}", # token simulado
+                "Token": f'TOKEN_CLIENTE_{cliente["ID_Cliente"]}', # token simulado
                 "Nome": cliente["Nome"]
             }
         

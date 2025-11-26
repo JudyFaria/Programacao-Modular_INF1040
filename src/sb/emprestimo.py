@@ -300,7 +300,7 @@ def renovar_emprestimo(id_emprestimo: int, tipo_usuario: str) -> bool:
             print(f"Aviso: Empréstimo está atrasado. Multa aplicada: R$ {multa_valor:.2f}")
 
             # pagamento da multa
-            pago = multa.registrar_pagamento_multa(emprestimo["ID_Cliente_Referencia"], multa)
+            pago = multa.registrar_pagamento_multa(emprestimo["ID_Cliente_Referencia"], multa_valor)
             if not pago:
                 return False    
             
@@ -311,6 +311,9 @@ def renovar_emprestimo(id_emprestimo: int, tipo_usuario: str) -> bool:
     nova_data = _calcular_data_devolucao(data_atual_prevista)
     
     emprestimo["DataDevolucaoPrevista"] = nova_data.isoformat()
+
+    # Depois de renovar (com ou sem multa), o empréstimo volta a ficar em andamento
+    emprestimo["Status"] = "Em andamento"
     
     salvar_alteracoes()
     return True
@@ -330,3 +333,21 @@ def get_historico_cliente(id_cliente: int) -> list[dict]:
         if emp["ID_Cliente_Referencia"] == id_cliente:
             historico.append(emp)
     return historico
+
+def cliente_tem_pendencias(id_cliente: int) -> bool:
+    """
+    Verifica se o cliente possui empréstimos em andamento ou atrasados.
+
+    Parâmetros:
+        id_cliente (int): ID do cliente a ser verificado.   
+    
+    Retorna:
+        bool:
+            - True se o cliente tiver pendências (Status 'Em andamento' ou 'Atrasado').
+            - False se não houver pendências.
+    """
+    for emp in _lst_emprestimos:
+        if (emp["ID_Cliente_Referencia"] == id_cliente and
+           emp["Status"] in ["Em andamento", "Atrasado"]):
+            return True
+    return False

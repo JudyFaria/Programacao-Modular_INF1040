@@ -3,6 +3,7 @@ import importlib
 import src.sb.gestao_usuarios as gu
 import src.sb.persistence as persistence
 import src.sb.emprestimo as ge
+import src.sb.acervo as acervo
 
 
 @pytest.fixture(autouse=True) # todos os testes rodam antes de executar
@@ -46,48 +47,33 @@ def test_exclusao_cliente():
 
 
 def test_exclusao_cliente_pendencia():
-    '''
-        Não deve ser possivel excluir um cliente com 
-        empréstimo pendente
-    '''
+    """
+    Não deve ser possivel excluir um cliente com
+    empréstimo pendente.
+    """
 
+    # 1. Cadastra cliente
     cliente = gu.cadastrar_cliente("Duda", "333", "Rua D", "666", "duda123")
-    
-    # # Simula uma lista de empréstimos com uma pendência 
-    # _lista_emprestimos_ativo = [
-    #     {
-    #         "ID_Cliente_Referencia": cliente["ID_Cliente"], 
-    #         "Status": "Em andamento"
-    #     }
-    # ]
 
-    # começa em andamento
-    db_emp, db_copias, prox = emp.criar_emprestimo(1, 99, db_emp, db_copias, prox)
-    emp = ge.criar_emprestimo( 
-        cliente["ID_Cliente"], 
-        1,  # id_copia
-        "2024-07-01", 
-        "2024-07-15",
-        2
-    )
+    # 2. Cadastra um livro e uma cópia desse livro
+    livro = acervo.cadastrar_livro("Livro Pendência", "Autor", "Ed")
+    copias = acervo.add_copias(livro["ID_Livro"], 1, "Estante X")
+    copia = copias[0]
 
-    # alterando o status para o test
-    emp["Status"] = "Em andamento"
+    # 3. Cria um empréstimo EM ANDAMENTO para esse cliente
+    emp = ge.criar_emprestimo(cliente["ID_Cliente"], copia["ID_Copia"])
 
+    # Garantias de pré-condição (opcional, só pra sanity check)
+    assert emp is not None
+    assert emp["Status"] == "Em andamento"
 
-    # Persiste a lista para que o módulo de empréstimos a carregue como estado global
-    persistence.save("emprestimo", {
-        "_lst_emprestimos": [emp],
-        "_prox_id_emprestimo": 2,
-    })
+    # 4. Tenta excluir o cliente
+    exclusao = gu.excluir_cliente(cliente["CPF"])
 
-    # recarrega o módulo de empréstimo para que ele leia o arquivo de persistência
-    importlib.reload(ge)
-    
-    assert len(gu._lst_clientes) == 1 # Garante que foi cadastrado
-    assert len(ge._lst_emprestimos) == 1 # Garante que a lista de empréstimos foi carregada
-    
-    exclusao = gu.excluir_cliente(cliente["CPF"])  # não passa lista, usa o estado global do módulo de emprestimo
-    
+    # 5. Verificações
+    # Exclusão deve falhar por causa do empréstimo pendente
     assert exclusao is False
-    assert len(gu._lst_clientes) == 1 
+
+    # Cliente continua cadastrado
+    clientes_restantes = gu.get_todos_clientes()
+    assert any(c["CPF"] == cliente["CPF"] for c in clientes_restantes)

@@ -24,6 +24,7 @@ def _reload_sb_modules():
         'src.sb.acervo',
         'src.sb.gestao_usuarios',
         'src.sb.emprestimo',
+        'src.sb.multa',
     ]
     for m in modules:
         try:
