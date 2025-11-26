@@ -260,3 +260,41 @@ def get_todas_copias():
             Lista com todas as cópias cadastradas no acervo.
     """
     return _lst_copias_livros
+
+def get_copia_por_id(id_copia: int) -> dict | None:
+    """
+    Busca e retorna uma cópia específica pelo ID.
+
+    Parâmetros:
+        id_copia (int): ID da cópia desejada.
+
+    Retorno:
+        dict | None:
+            - Dicionário da cópia, se encontrada.
+            - None se não existir cópia com esse ID.
+    """
+    for copia in _lst_copias_livros:
+        if copia["ID_Copia"] == id_copia:
+            return copia
+    return None
+
+
+def atualizar_status_copia(id_copia: int, novo_status: str) -> bool:
+    """
+    Atualiza o campo 'Status' de uma cópia específica.
+
+    Parâmetros:
+        id_copia (int): ID da cópia que terá o status alterado.
+        novo_status (str): Novo status (ex: 'Disponível', 'Emprestado').
+
+    Retorno:
+        bool:
+            - True se a cópia foi encontrada e atualizada.
+            - False se a cópia não existir.
+    """
+    copia = get_copia_por_id(id_copia)
+    if copia is None:
+        return False
+
+    copia["Status"] = novo_status
+    return True

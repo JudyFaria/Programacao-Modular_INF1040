@@ -9,6 +9,8 @@
 
 from datetime import date, timedelta
 from src.sb import persistence
+from src.sb import acervo   
+from src.sb import multa
 
 _loaded_state = persistence.load("emprestimo", {})
 
@@ -17,16 +19,12 @@ _prox_id_emprestimo = _loaded_state.get("_prox_id_emprestimo", 1)
 
 
 # funções auxiliares
-def salvar_alteracoes() -> None:
+def salvar_estado_emprestimos() -> None:
     """
     Persiste o estado atual dos empréstimos no armazenamento.
-
-    Salva:
-        - Lista completa de empréstimos (`_lst_emprestimos`)
-        - Próximo ID de empréstimo (`_prox_id_emprestimo`)
-
-    Não recebe parâmetros e não retorna valor.
+    Deve ser chamada apenas no encerramento da aplicação.
     """
+
     persistence.save("emprestimo", {
         "_lst_emprestimos": _lst_emprestimos,
         "_prox_id_emprestimo": _prox_id_emprestimo
@@ -49,7 +47,8 @@ def _calcular_data_devolucao(data_inicio: date) -> date:
     while dias_adicionados < 7:
         data_atual += timedelta(days=1)
         
-        if data_atual.weekday() < 5: # 0-4 são dias úteis
+        # 0-4 são dias úteis (segunda a sexta-feira)
+        if data_atual.weekday() < 5: 
             dias_adicionados += 1
     
     return data_atual
@@ -70,20 +69,13 @@ def verificar_e_atualizar_atrasos() -> None:
     """
 
     hoje = date.today()
-    alterado = False
 
     for emp in _lst_emprestimos:
         if emp["Status"] == "Em andamento":
-
-            # converte string ISO para date
             data_prevista = date.fromisoformat(emp["DataDevolucaoPrevista"])
 
             if hoje > data_prevista:
                 emp["Status"] = "Atrasado"
-                alterado = True
-
-    if alterado:
-        salvar_alteracoes()
 
 #__________________________________________________
 
@@ -113,7 +105,6 @@ def criar_emprestimo(id_cliente: int, id_copia: int) -> dict | None:
         None: Se ocorrer alguma violação das regras (limite, atraso, cópia indisponível, etc.).
     """
     global _prox_id_emprestimo
-    from src.sb import acervo # Importação local
 
     # 1. Atualiza status de atrasos antes de verificar
     verificar_e_atualizar_atrasos()
@@ -138,11 +129,7 @@ def criar_emprestimo(id_cliente: int, id_copia: int) -> dict | None:
         return None
 
     # 3. Verifica e Obtém a Cópia do Acervo
-    copia_encontrada = None
-    for copia in acervo._lst_copias_livros:
-        if copia["ID_Copia"] == id_copia:
-            copia_encontrada = copia
-            break
+    copia_encontrada = acervo.get_copia_por_id(id_copia)
     
     if not copia_encontrada:
         print(f"Erro: Cópia {id_copia} não encontrada.")
@@ -170,18 +157,8 @@ def criar_emprestimo(id_cliente: int, id_copia: int) -> dict | None:
     _prox_id_emprestimo += 1
 
     # 5. Atualiza o Acervo (Cópia vira 'Emprestado')
-    copia_encontrada["Status"] = "Emprestado"
+    acervo.atualizar_status_copia(id_copia, "Emprestado")
     
-    # Persiste alteração no acervo
-    persistence.save("acervo", {
-        "_lst_livros": acervo._lst_livros,
-        "_lst_copias_livros": acervo._lst_copias_livros,
-        "_prox_id_livro": acervo._prox_id_livro,
-        "_prox_id_copia": acervo._prox_id_copia,
-    })
-
-    # Persiste alteração no empréstimo
-    salvar_alteracoes()
 
     return novo_emprestimo
 
@@ -216,24 +193,13 @@ def registrar_devolucao(id_copia: int) -> dict | None:
     emprestimo_ativo["DataDevolucaoReal"] = date.today().isoformat()
 
     # 3. Atualizar o Acervo (Liberar a cópia)
-    copia_encontrada = None
-    for copia in acervo._lst_copias_livros:
-        if copia["ID_Copia"] == id_copia:
-            copia_encontrada = copia
-            break
-    
-    if copia_encontrada:
-        copia_encontrada["Status"] = "Disponível"
-        # Persiste alteração no acervo
-        persistence.save("acervo", {
-            "_lst_livros": acervo._lst_livros,
-            "_lst_copias_livros": acervo._lst_copias_livros,
-            "_prox_id_livro": acervo._prox_id_livro,
-            "_prox_id_copia": acervo._prox_id_copia,
-        })
+    copia_encontrada = acervo.get_copia_por_id(id_copia)
 
-    # Persiste alteração no empréstimo
-    salvar_alteracoes()
+    if not copia_encontrada:
+        print(f"Erro: Cópia {id_copia} não encontrada.")
+        return None
+    
+    acervo.atualizar_status_copia(id_copia, "Disponível")
 
     print(f"Devolução registrada com sucesso para cópia {id_copia}.")
     return emprestimo_ativo
@@ -269,7 +235,6 @@ def renovar_emprestimo(id_emprestimo: int, tipo_usuario: str) -> bool:
             - False em caso de erro, empréstimo não encontrado, finalizado,
               atraso sem permissão ou falha no pagamento da multa.
     """
-    from src.sb import multa
 
     verificar_e_atualizar_atrasos()
 
@@ -294,13 +259,13 @@ def renovar_emprestimo(id_emprestimo: int, tipo_usuario: str) -> bool:
             return False
             
         elif tipo_usuario == "Funcionario":
-            multa_valor = multa.calcular_multa(emprestimo)
+            valor_multa = multa.calcular_multa(emprestimo)
             
             # informa a multa 
-            print(f"Aviso: Empréstimo está atrasado. Multa aplicada: R$ {multa_valor:.2f}")
+            print(f"Aviso: Empréstimo está atrasado. Multa aplicada: R$ {valor_multa:.2f}")
 
             # pagamento da multa
-            pago = multa.registrar_pagamento_multa(emprestimo["ID_Cliente_Referencia"], multa_valor)
+            pago = multa.registrar_pagamento_multa(emprestimo["ID_Cliente_Referencia"], valor_multa)
             if not pago:
                 return False    
             
@@ -315,7 +280,6 @@ def renovar_emprestimo(id_emprestimo: int, tipo_usuario: str) -> bool:
     # Depois de renovar (com ou sem multa), o empréstimo volta a ficar em andamento
     emprestimo["Status"] = "Em andamento"
     
-    salvar_alteracoes()
     return True
 
 def get_historico_cliente(id_cliente: int) -> list[dict]:
