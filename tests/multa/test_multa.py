@@ -10,12 +10,8 @@ def test_calcular_multa_sem_atraso():
     """
     Empréstimo "Em andamento" ou "Finalizado" não deve gerar multa.
     """
-    emprestimo_mock = {
-        "Status": "Em andamento",
-        "DataDevolucaoPrevista": date.today().isoformat()
-    }
     
-    valor = multa.calcular_multa(emprestimo_mock)
+    valor = multa.calcular_multa(0)
     assert valor == 0.0
 
 def test_calcular_multa_com_atraso_simples():
@@ -25,15 +21,9 @@ def test_calcular_multa_com_atraso_simples():
     """
     # Simula 5 dias de atraso
     dias_atraso = 5
-    data_prevista = (date.today() - timedelta(days=dias_atraso)).isoformat()
-    
-    emprestimo_mock = {
-        "Status": "Atrasado",
-        "DataDevolucaoPrevista": data_prevista
-    }
     
     # Cálculo manual esperado: 5 * (1.01^5) = 5 * 1.05101 = 5.255... -> 5.26
-    valor_calculado = multa.calcular_multa(emprestimo_mock)
+    valor_calculado = multa.calcular_multa(dias_atraso)
     
     assert valor_calculado > 5.00
     assert valor_calculado == 5.26
@@ -43,15 +33,9 @@ def test_calcular_multa_com_atraso_longo():
     Testa juros compostos em um período maior (ex: 30 dias).
     """
     dias_atraso = 30
-    data_prevista = (date.today() - timedelta(days=dias_atraso)).isoformat()
-    
-    emprestimo_mock = {
-        "Status": "Atrasado",
-        "DataDevolucaoPrevista": data_prevista
-    }
     
     # Cálculo: 5 * (1.01^30) = 5 * 1.3478... = 6.739... -> 6.74
-    valor_calculado = multa.calcular_multa(emprestimo_mock)
+    valor_calculado = multa.calcular_multa(dias_atraso)
     
     assert valor_calculado == 6.74
 

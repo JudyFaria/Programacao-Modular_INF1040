@@ -77,6 +77,28 @@ def verificar_e_atualizar_atrasos() -> None:
             if hoje > data_prevista:
                 emp["Status"] = "Atrasado"
 
+
+def calcular_dias_atraso(data_prevista_iso: str) -> int:
+    """
+    Calcula quantos dias de atraso existem em relação à data prevista.
+
+    Parâmetros:
+        data_prevista_iso (str):
+            Data prevista no formato ISO (YYYY-MM-DD)
+
+    Retorno:
+        int:
+            Número de dias de atraso.
+            > 0  → atraso
+            = 0  → vence hoje
+            < 0  → ainda não venceu
+    """
+    hoje = date.today()
+    data_prevista = date.fromisoformat(data_prevista_iso)
+    
+    delta = hoje - data_prevista
+    return delta.days
+
 #__________________________________________________
 
 def criar_emprestimo(id_cliente: int, id_copia: int) -> dict | None:
@@ -259,7 +281,8 @@ def renovar_emprestimo(id_emprestimo: int, tipo_usuario: str) -> bool:
             return False
             
         elif tipo_usuario == "Funcionario":
-            valor_multa = multa.calcular_multa(emprestimo)
+            dias_atraso = calcular_dias_atraso(emprestimo["DataDevolucaoPrevista"])
+            valor_multa = multa.calcular_multa(dias_atraso)
             
             # informa a multa 
             print(f"Aviso: Empréstimo está atrasado. Multa aplicada: R$ {valor_multa:.2f}")

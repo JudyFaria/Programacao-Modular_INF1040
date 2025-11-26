@@ -1,6 +1,6 @@
-import datetime
 from datetime import date
 from src.sb import persistence
+from src.sb import emprestimo as ge
 
 # --- Configurações da Multa ---
 VALOR_BASE_MULTA = 5.00  # Valor fixo inicial ao atrasar (R$)
@@ -24,31 +24,9 @@ def salvar_estado_multas() -> None:
     })
 
 
-def calcular_dias_atraso(data_prevista_iso: str) -> int:
-    """
-    Calcula quantos dias de atraso existem em relação à data prevista.
-
-    Parâmetros:
-        data_prevista_iso (str):
-            Data prevista no formato ISO (YYYY-MM-DD)
-
-    Retorno:
-        int:
-            Número de dias de atraso.
-            > 0  → atraso
-            = 0  → vence hoje
-            < 0  → ainda não venceu
-    """
-    hoje = date.today()
-    data_prevista = date.fromisoformat(data_prevista_iso)
-    
-    delta = hoje - data_prevista
-    return delta.days
-
-
 # --- Funções Principais ---
 
-def calcular_multa(emprestimo: dict) -> float:
+def calcular_multa(dias_atraso: int) -> float:
     """
     Calcula o valor da multa usando Juros Compostos (RF-024).
 
@@ -60,22 +38,14 @@ def calcular_multa(emprestimo: dict) -> float:
             t = Dias de Atraso
 
         Parâmetros:
-            emprestimo (dict):
-                Dicionário contendo os dados do empréstimo.
-                Deve conter:
-                    - "Status": str
-                    - "DataDevolucaoPrevista": str (ISO)
+            dias_atraso (int):
+                Número de dias em atraso.
 
         Retorno:
             float:
                 Valor da multa arredondado para 2 casas decimais.
                 Retorna 0.0 se o empréstimo não estiver atrasado.
     """
-    if emprestimo["Status"] != "Atrasado":
-        return 0.0
-    
-    dias_atraso = calcular_dias_atraso(emprestimo["DataDevolucaoPrevista"])
-    
     if dias_atraso <= 0:
         return 0.0
     
