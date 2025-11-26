@@ -14,14 +14,14 @@ def render_page_gerenciar_acervo(api):
         with st.form("novo_livro_form", clear_on_submit=True):
             titulo = st.text_input("Título")
             autor = st.text_input("Autor")
-            edicao = st.text_input("Edição/Editora")
+            editora = st.text_input("Editora")
             st.divider()
             quantidade = st.number_input("Qtd. Exemplares", min_value=1, value=1)
             localizacao = st.text_input("Localização")
             
             if st.form_submit_button("Cadastrar Título e Exemplares"):
                 
-                livro = api.cadastrar_livro(titulo, autor, edicao) # Chama a API
+                livro = api.cadastrar_livro(titulo, autor, editora) # Chama a API
                 
                 if not livro:
                     st.error(f"Erro ao cadastrar livro '{titulo}'.")
@@ -83,7 +83,7 @@ def render_page_gerenciar_usuarios(api):
     # A lógica de permissão (RF-003) está aqui
     if st.session_state.usuario_logado['Papel'] == "Administrador":
         abas.append("Cadastrar Novo Funcionário")
-        abas.append("Excluir Funcionáios")
+        abas.append("Excluir Funcionários")
     
     tabs = st.tabs(abas)
     

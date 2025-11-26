@@ -4,7 +4,7 @@
 #     ID_Livro (Inteiro, Chave Primária)
 #     Titulo (Texto)
 #     Autor (Texto)
-#     Edicao (Texto)
+#     Editora (Texto)
 
 # Copia (Exemplar Físico):
 #     ID_Copia (Inteiro, Chave Primária)
@@ -35,7 +35,7 @@ def salvar_estado_acervo() -> None:
         "_prox_id_copia": _prox_id_copia,
     })
 
-def cadastrar_livro(titulo: str, autor: str, edicao: str) -> dict:
+def cadastrar_livro(titulo: str, autor: str, editora: str) -> dict:
     """
     Verifica se um LIVRO (título/autor/edição) já existe.
         Se não existir, cadastra em `_lst_livros`.
@@ -43,7 +43,7 @@ def cadastrar_livro(titulo: str, autor: str, edicao: str) -> dict:
     Parâmetros:
         titulo (str): Título do livro.
         autor  (str): Nome do autor.
-        edicao (str): Informação da edição (ex.: "1ª edição", "2ª ed.").
+        editora (str): Informação da edição (ex.: "1ª edição", "2ª ed.").
 
     Retorno:
         dict:
@@ -59,13 +59,13 @@ def cadastrar_livro(titulo: str, autor: str, edicao: str) -> dict:
 
         if ( (livro["Titulo"] == titulo) 
             and (livro["Autor"] ==  autor) 
-            and (livro["Edicao"] == edicao)
+            and (livro["Editora"] == editora)
         ):
             livro_existente = livro
             break # não procura mais 
 
     if livro_existente:
-        # print(f"Erro! O livro '{titulo}'  (Ed. {edicao}) já está cadastrado com o Id {livro["ID_livro"]}.")
+        # print(f"Erro! O livro '{titulo}'  (Ed. {editora}) já está cadastrado com o Id {livro["ID_livro"]}.")
         return livro_existente
     
     else: 
@@ -73,7 +73,7 @@ def cadastrar_livro(titulo: str, autor: str, edicao: str) -> dict:
             "ID_Livro": _prox_id_livro,
             "Titulo": titulo,
             "Autor": autor,
-            "Edicao": edicao
+            "Editora": editora
         }
 
         _lst_livros.append(novo_livro)
@@ -145,7 +145,7 @@ def buscar_livro(termo_busca: str) -> list[dict]:
             Palavra ou trecho a ser buscado em:
                 - Titulo
                 - Autor
-                - Edicao
+                - Editora
 
     Retorno:
         list[dict]:
@@ -163,7 +163,7 @@ def buscar_livro(termo_busca: str) -> list[dict]:
 
         if ( (termo_busca.lower() in livro["Titulo"].lower() ) 
             or ( termo_busca.lower() in livro["Autor"].lower() )
-            or ( termo_busca.lower() in livro["Edicao"].lower()) 
+            or ( termo_busca.lower() in livro["Editora"].lower()) 
             ):
             
             id_livro_achado = livro["ID_Livro"]
@@ -221,7 +221,7 @@ def excluir_livro_e_copias(id_livro: int) -> bool:
             break
 
     if copia_emprestada:
-        print(f"ERRO: Exclusão falhou.")
+        print(f"ERRO: Exclusão falhou - Exemplar possui empréstimo ativo.")
         print(f"O livro (ID: {id_livro}) não pode ser excluído pois a")
         print(f"cópia (ID: {copia_emprestada['ID_Copia']}) está 'Emprestado'.")
         return False 

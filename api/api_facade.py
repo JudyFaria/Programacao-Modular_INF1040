@@ -30,7 +30,7 @@ def inicializar_sistema():
 
     # Verifica atrasos
     ge.verificar_e_atualizar_atrasos()
-    
+
 
 # Wrappers - Gestão de Usuário
 def autenticar_usuario(usuario, senha):
@@ -64,8 +64,8 @@ def buscar_livro(termo):
 def get_todos_livros():
     return acervo.get_todos_livros()
 
-def cadastrar_livro(titulo, autor, edicao):
-    return acervo.cadastrar_livro(titulo, autor, edicao)
+def cadastrar_livro(titulo, autor, editora):
+    return acervo.cadastrar_livro(titulo, autor, editora)
 
 def add_copias(id_livro, qtd, loc):
     return acervo.add_copias(id_livro, qtd, loc)
