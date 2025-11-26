@@ -31,7 +31,7 @@ def inicializar_sistema():
 
     # POPULA CLIENTES (Verifica duplicidade por CPF) 
     clientes = gu.get_todos_clientes()
-    cpf_exemplo = "111"
+    cpf_exemplo = "12345678900"
     
     # Verifica se já existe algum cliente com esse CPF na lista
     cliente_existe = False
